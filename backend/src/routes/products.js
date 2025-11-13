@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { Op } = require('sequelize');
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 const Supplier = require('../models/Supplier');
@@ -132,13 +133,9 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 // Get low stock products
 router.get('/reports/low-stock', authMiddleware, async (req, res) => {
   try {
-    const { Op } = require('sequelize');
+    const sequelize = require('../config/database');
     const products = await Product.findAll({
-      where: {
-        stock: {
-          [Op.lte]: sequelize.col('minStock')
-        }
-      },
+      where: sequelize.literal('stock <= minStock'),
       include: [
         { model: Category, as: 'category' },
         { model: Supplier, as: 'supplier' }
