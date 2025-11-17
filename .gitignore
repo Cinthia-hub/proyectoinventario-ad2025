@@ -1,0 +1,18 @@
+--- Dependencias (Muy pesadas, no se suben) ---
+node_modules/
+*/node_modules/
+
+--- Variables de Entorno (SECRETOS) ---
+.env
+backend/.env
+frontend/.env
+
+--- Archivos de compilación del Frontend ---
+dist/
+frontend/dist/
+
+--- Logs y archivos del sistema ---
+*.log
+.DS_Store
+thumbs.db
+.vscode/

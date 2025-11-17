@@ -331,7 +331,5 @@ export default {
 </script>
 
 <style scoped>
-/* (pequeños estilos de topbar ya están en global; mantener lo que tenías) */
 .topbar { height: 64px; display:flex; align-items:center; justify-content:space-between; padding:12px 20px; background:#fafafa; border-bottom:1px solid #eee; position:sticky; top:0; z-index:50; }
-/* ... puedes mantener el resto de estilos que ya tenías ... */
 </style>
