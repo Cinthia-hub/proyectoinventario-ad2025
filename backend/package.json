@@ -1,0 +1,20 @@
+{
+  "name": "kanban-backend",
+  "version": "1.0.0",
+  "description": "Backend REST API para Kanban inventory (lowdb)",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "lowdb": "^5.0.0",
+    "nanoid": "^4.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}

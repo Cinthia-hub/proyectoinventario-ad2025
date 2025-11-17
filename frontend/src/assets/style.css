@@ -1,0 +1,258 @@
+/* Global styles for the Kanban frontend - responsive layout and components */
+
+/* Base */
+* { box-sizing: border-box; }
+body {
+  margin:0;
+  font-family: Inter, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  background: #f3f3f3;
+  color: #333;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* Main area pushed by sidebar (sidebar width = 200px) */
+.main-area {
+  margin-left: 200px;
+  min-height: 100vh;
+  transition: margin-left 220ms ease;
+}
+
+/* When sidebar collapsed, use full width */
+.main-area.sidebar-collapsed {
+  margin-left: 0;
+}
+
+/* CONTENT WRAPPER:
+   - By default content is centered with a max-width (desktop)
+   - When sidebar is collapsed, content becomes fluid and uses full available width */
+.content {
+  padding: 20px;
+  max-width: 1150px;
+  margin: 0 auto; /* centered when sidebar visible */
+  transition: max-width 220ms ease, margin 220ms ease;
+}
+
+/* FULL-WIDTH MODE: when sidebar is collapsed, make content take full width */
+.main-area.sidebar-collapsed .content {
+  max-width: none;
+  margin: 0 18px; /* small side gutters on very large screens */
+}
+
+/* Topbar and search adjustments: ensure search expands to available space */
+.topbar {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* left area (menu button + search) flexible */
+.topbar-left {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  width: 100%;
+}
+
+/* menu button has fixed size */
+.menu-btn {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:40px;
+  height:40px;
+  border-radius:8px;
+  background:white;
+  border:1px solid #e6e6e6;
+  cursor:pointer;
+  flex: 0 0 auto;
+}
+
+/* search wrapper becomes flexible and fills remaining space */
+.search-wrapper {
+  position:relative;
+  flex: 1 1 auto;
+  min-width: 0; /* important to allow input to shrink in flexbox */
+  max-width: 900px;
+}
+
+/* search input uses 100% of wrapper */
+.search-input {
+  padding:10px 12px;
+  padding-left:36px;
+  border-radius:8px;
+  width:100%;
+  border:1px solid #e6e6e6;
+  background: white;
+  box-sizing: border-box;
+}
+
+/* icon inside search */
+.search-icon {
+  position:absolute;
+  left:10px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#9c9c9c;
+}
+
+/* Right side topbar */
+.topbar-right {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-left: 12px;
+  flex: 0 0 auto;
+}
+
+/* ensure cards have margins and rounded corners */
+.card {
+  background:white;
+  border-radius:8px;
+  padding:16px;
+  box-shadow: 0 6px 14px rgba(20,20,20,0.04);
+  margin-bottom:18px;
+}
+
+/* stats grid inside card */
+.stats-grid {
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:12px;
+  align-items:center;
+}
+
+.stat { padding: 6px 12px; border-right:1px solid #f0f0f0; }
+.stat:last-child { border-right:none; }
+.stat-title { margin:0 0 8px 0; font-size:13px; color:#6d6c6c; }
+.stat-value { font-weight:600; font-size:20px; color:#333; }
+.stat-sub { color:#9c9c9c; font-size:13px; margin-top:8px; }
+
+/* table card header */
+.table-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:8px;
+  flex-wrap:wrap;
+}
+
+.table-actions { display:flex; gap:10px; align-items:center; }
+
+/* table styles - full width of card */
+.products {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.products thead {
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+}
+
+.products th, .products td {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 14px;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.products tbody tr:hover {
+  background: #fafafa;
+}
+
+/* Availability colors */
+.txt-green { color:#02b85a; font-weight:600; }
+.txt-yellow { color:#f0ad4e; font-weight:600; }
+.txt-red { color:#fd3434; font-weight:600; }
+
+/* Product-list internal adjustments */
+.product-link { color: inherit; text-decoration: none; }
+
+/* Overlay */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(192, 192, 192, 0.35);
+  z-index: 1000;
+}
+.overlay-hidden { display: none; }
+
+/* Buttons */
+.btn-blue {
+  background: #2f6cf2;
+  color: #fff;
+  border: none;
+  padding:8px 12px;
+  border-radius:6px;
+  cursor:pointer;
+}
+.btn-white {
+  background: #fff;
+  color: #333;
+  border: 1px solid #e6e6e6;
+  padding:8px 12px;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 1100px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .search-input { max-width: 360px; }
+  .content { max-width: 980px; }
+  .main-area.sidebar-collapsed .content { margin: 0 12px; }
+}
+
+@media (max-width: 900px) {
+  /* For small screens default to collapsed sidebar */
+  .main-area { margin-left: 0; }
+  .main-area.sidebar-collapsed .content { margin: 0 8px; }
+  .search-input { width: 100%; max-width: none; }
+  .content { padding: 12px; }
+}
+
+/* Very small devices: stack header elements */
+@media (max-width: 520px) {
+  .topbar { padding: 8px; height: auto; gap:8px; flex-wrap:wrap; }
+  .search-input { width: 100%; max-width: 100%; padding:10px; }
+  .table-actions { display:flex; flex-wrap:wrap; gap:8px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .products th, .products td { padding: 10px 8px; font-size: 13px; }
+  .card { padding:12px; }
+}
+
+/* Small aesthetic details for icons and buttons */
+.icon-btn { background:transparent; border:none; cursor:pointer; padding:8px; border-radius:8px; }
+.icon-btn:hover { background:#f5f5f5; }
+
+/* Ensure buttons and inputs are touch-friendly */
+button, input, select { font-size: 14px; }
+
+.pagination {
+  justify-content: center;
+}
+
+/* When the page-info should be centered beneath table on very small screens */
+@media (max-width: 520px) {
+  .pagination { flex-wrap: wrap; gap: 8px; justify-content: center;}
+  .page-info { order: 2; width: 100%; text-align: center; margin-top: 6px; }
+  .pagination-btn { order: 1; }
+}
+
+/* Option: add focus ring for accessibility */
+.action-edit:focus, .action-delete:focus, .pagination-btn:focus {
+  outline: 3px solid rgba(47,108,242,0.18);
+  outline-offset: 2px;
+}
