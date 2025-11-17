@@ -60,7 +60,7 @@
           </a>
         </li>
         <li class="menu-item">
-          <a href="#" class="menu-link">
+          <a href="#" class="menu-link" @click.prevent="handleLogout">
             <i class="fa-solid fa-arrow-right-from-bracket"></i>
             <span>Log Out</span>
           </a>
@@ -70,12 +70,24 @@
   </aside>
 </template>
 
-<script>
-export default {
-  name: "Sidebar",
-  props: {
-    collapsed: { type: Boolean, default: false }
+<script setup>
+import { useAuthStore } from '../../store/auth.store';
+import { useRouter } from 'vue-router';
+
+defineProps({
+  collapsed: {
+    type: Boolean,
+    default: false
   }
+});
+
+const authStore = useAuthStore();
+const router = useRouter();
+
+// --- FUNCIÓN PARA SALIR ---
+const handleLogout = () => {
+  authStore.logout();
+  router.push('/');
 };
 </script>
 
