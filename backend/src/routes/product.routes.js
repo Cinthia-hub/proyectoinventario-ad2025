@@ -1,54 +1,66 @@
 import express from "express";
-import { nanoid } from "nanoid";
+import { db } from "../config/db.js";
 
 const router = express.Router();
 
-// GET /api/products
+// GET /api/products - lista todos los productos
 router.get("/", async (req, res) => {
-  const db = req.db;
-  await db.read();
-  const products = db.data.products || [];
-  res.json(products);
+  try {
+    const snapshot = await db.collection('products').get();
+    const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// POST /api/products
+// POST /api/products - crea un producto
 router.post("/", async (req, res) => {
-  const db = req.db;
-  await db.read();
-  const payload = req.body;
-  const id = nanoid();
-  const newProduct = { id, ...payload };
-  db.data.products.push(newProduct);
-  await db.write();
-  res.status(201).json(newProduct);
+  try {
+    const payload = req.body || {};
+    const docRef = await db.collection('products').add(payload);
+    const created = await docRef.get();
+    res.status(201).json({ id: created.id, ...created.data() });
+  } catch (error) {
+    console.error('Error creating product:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// PUT /api/products/:id
+// PUT /api/products/:id - actualiza un producto
 router.put("/:id", async (req, res) => {
-  const db = req.db;
-  await db.read();
-  const { id } = req.params;
-  const index = (db.data.products || []).findIndex(p => p.id === id);
-  if (index === -1) {
-    return res.status(404).json({ error: "Product not found" });
+  try {
+    const { id } = req.params;
+    const docRef = db.collection('products').doc(id);
+    const snapshot = await docRef.get();
+    if (!snapshot.exists) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    await docRef.update(req.body || {});
+    const updated = await docRef.get();
+    res.json({ id: updated.id, ...updated.data() });
+  } catch (error) {
+    console.error('Error updating product:', error);
+    res.status(500).json({ error: error.message });
   }
-  db.data.products[index] = { ...db.data.products[index], ...req.body };
-  await db.write();
-  res.json(db.data.products[index]);
 });
 
-// DELETE /api/products/:id
+// DELETE /api/products/:id - elimina un producto
 router.delete("/:id", async (req, res) => {
-  const db = req.db;
-  await db.read();
-  const { id } = req.params;
-  const before = db.data.products.length;
-  db.data.products = (db.data.products || []).filter(p => p.id !== id);
-  await db.write();
-  if (db.data.products.length === before) {
-    return res.status(404).json({ error: "Product not found" });
+  try {
+    const { id } = req.params;
+    const docRef = db.collection('products').doc(id);
+    const snapshot = await docRef.get();
+    if (!snapshot.exists) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+    await docRef.delete();
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    res.status(500).json({ error: error.message });
   }
-  res.status(204).send();
 });
 
 export default router;

@@ -1,51 +1,58 @@
 <template>
-  <aside :class="['app-sidebar', { collapsed: collapsed }]" role="navigation" aria-label="Main navigation">
+  <aside :class="['app-sidebar', { collapsed }]" role="navigation" aria-label="Main navigation">
     <div class="sidebar-top">
-      <img class="sidebar-logo" src="" alt="" />
-      <span class="brand">KANBAN</span>
+      <img class="sidebar-logo" src="../../assets/logo.png" alt="Mecadito Logo" />
+      <span class="brand">Mecadito</span>
     </div>
 
     <nav class="sidebar-menu" aria-label="Primary">
       <ul>
-        <li class="menu-item">
-          <a href="#" class="menu-link">
+        <li :class="['menu-item', { active: isActive('/dashboard') }]">
+          <a href="#" class="menu-link" @click.prevent="navigateTo('/dashboard', 'home')">
             <i class="fa-solid fa-house"></i>
             <span>Dashboard</span>
           </a>
         </li>
 
-        <li class="menu-item active">
-          <a href="#" class="menu-link">
+        <li :class="['menu-item', { active: isActive('/admin') }]">
+          <a href="#" class="menu-link" @click.prevent="navigateTo('/admin', 'admins')">
+            <i class="fa-regular fa-user"></i>
+            <span>Administrators</span>
+          </a>
+        </li>
+
+        <li :class="['menu-item', { active: isActive('/inventory') }]">
+          <a href="#" class="menu-link" @click.prevent="navigateTo('/inventory', 'products')">
             <i class="fa-solid fa-cart-shopping"></i>
             <span>Inventory</span>
           </a>
         </li>
 
-        <li class="menu-item">
-          <a href="#" class="menu-link">
-            <i class="fa-solid fa-square-poll-vertical"></i>
-            <span>Reports</span>
-          </a>
-        </li>
-
-        <li class="menu-item">
-          <a href="#" class="menu-link">
-            <i class="fa-regular fa-user"></i>
+        <li :class="['menu-item', { active: isActive('/suppliers') }]">
+          <a href="#" class="menu-link" @click.prevent="navigateTo('/suppliers', 'suppliers')">
+            <i class="fa-solid fa-people-carry-box"></i>
             <span>Suppliers</span>
           </a>
         </li>
 
-        <li class="menu-item">
-          <a href="#" class="menu-link">
+        <li :class="['menu-item', { active: isActive('/orders') }]">
+          <a href="#" class="menu-link" @click.prevent="navigateTo('/orders', 'orders')">
             <i class="fa-solid fa-box-open"></i>
             <span>Orders</span>
           </a>
         </li>
 
-        <li class="menu-item">
-          <a href="#" class="menu-link">
-            <i class="fa-solid fa-list-check"></i>
+        <li :class="['menu-item', { active: isActive('/store') }]">
+          <a href="#" class="menu-link" @click.prevent="navigateTo('/store')">
+            <i class="fa-solid fa-store"></i>
             <span>Manage Store</span>
+          </a>
+        </li>
+
+        <li :class="['menu-item', { active: isActive('/reports') }]">
+          <a href="#" class="menu-link" @click.prevent="navigateTo('/reports')">
+            <i class="fa-solid fa-square-poll-vertical"></i>
+            <span>Reports</span>
           </a>
         </li>
       </ul>
@@ -53,14 +60,14 @@
 
     <div class="sidebar-bottom" aria-label="Secondary">
       <ul>
-        <li class="menu-item">
-          <a href="#" class="menu-link">
+        <li :class="['menu-item', { active: isActive('/settings') }]">
+          <a href="#" class="menu-link" @click.prevent="navigateTo('/settings')">
             <i class="fa-solid fa-gear"></i>
             <span>Settings</span>
           </a>
         </li>
         <li class="menu-item">
-          <a href="#" class="menu-link">
+          <a href="#" class="menu-link" @click.prevent="handleLogout">
             <i class="fa-solid fa-arrow-right-from-bracket"></i>
             <span>Log Out</span>
           </a>
@@ -70,12 +77,43 @@
   </aside>
 </template>
 
-<script>
-export default {
-  name: "Sidebar",
-  props: {
-    collapsed: { type: Boolean, default: false }
+<script setup>
+import { useAuthStore } from '../../store/auth.store';
+import { useRouter, useRoute } from 'vue-router';
+
+const props = defineProps({
+  collapsed: {
+    type: Boolean,
+    default: false
   }
+});
+
+const emit = defineEmits(['navigate', 'logout']);
+
+const authStore = useAuthStore();
+const router = useRouter();
+const route = useRoute();
+
+// navega programáticamente y emite el evento 'navigate' para que el padre (si lo escucha) pueda reaccionar
+const navigateTo = (path, key = null) => {
+  if (key) emit('navigate', key);
+  router.push(path).catch(() => {});
+};
+
+// --- FUNCIÓN PARA SALIR ---
+const handleLogout = () => {
+  // llama a la acción de la store (debe existir logout en authStore)
+  authStore.logout();
+  emit('logout');
+  // redirige a la raíz (login)
+  router.push('/').catch(() => {});
+};
+
+// comprueba si la ruta actual coincide (o es subruta) del path pasado
+const isActive = (path) => {
+  const current = route.path || '';
+  if (!path) return false;
+  return current === path || current.startsWith(path + '/') || current.startsWith(path);
 };
 </script>
 
