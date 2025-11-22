@@ -1,6 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import DashboardView from '../views/DashboardView.vue'
+import InventoryView from '../views/InventoryView.vue'
+import ReportsView from '../views/ReportsView.vue'
+import StoreView from '../views/StoreView.vue'
+import OrdersView from '../views/OrdersView.vue'
+import SuppliersView from '../views/SuppliersView.vue'
+import AdminView from '../views/AdminView.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,9 +20,45 @@ const router = createRouter({
         {
         path: '/dashboard',
         name: 'dashboard',
-        component: DashboardView, // <--- Aquí se usa el componente que acabamos de mover
+        component: DashboardView,
         meta: { requiresAuth: true }
         },
+        {
+        path: '/inventory',
+        name: 'inventory',
+        component: InventoryView,
+        meta: { requiresAuth: true }
+        },
+        {
+        path: '/reports',
+        name: 'reports',
+        component: ReportsView,
+        meta: { requiresAuth: true }
+        },
+        {
+            path: '/store',
+            name: 'store',
+            component: StoreView,
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/orders',
+            name: 'orders',
+            component: OrdersView,
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/suppliers',
+            name: 'suppliers',
+            component: SuppliersView,
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/admin',
+            name: 'admin',
+            component: AdminView,
+            meta: { requiresAuth: true }
+        }
     ]
 })
 

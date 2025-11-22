@@ -109,8 +109,8 @@ export default {
 
 .actions-cell {
   display: flex;
-  gap: 8px;
-  justify-content: flex-end;
+  gap: 20px;
+  justify-content: start;
   align-items: center;
 }
 
@@ -158,6 +158,7 @@ export default {
   align-items: center;
   gap: 12px;
   padding: 12px 6px 0 6px;
+  justify-content: center;
 }
 
 .pagination-btn {
@@ -197,5 +198,20 @@ export default {
   padding: 24px;
   text-align: center;
   color: #888;
+}
+
+/* Availability colors */
+.txt-green { color:#02b85a; font-weight:600; }
+.txt-yellow { color:#f0ad4e; font-weight:600; }
+.txt-red { color:#fd3434; font-weight:600; }
+
+.product-link {
+  color: #1f7bff;
+  text-decoration: none;
+  font-weight: 500;
+  transition: text-decoration .12s;
+}
+.product-link:hover {
+  color: #1766d1;
 }
 </style>

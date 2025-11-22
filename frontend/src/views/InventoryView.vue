@@ -12,11 +12,69 @@
             />
 
             <div class="content">
-                <!-- Aquí va el contenido -->
+                <!-- Overall Inventory (kept same as before) -->
+                <section class="card stats-card">
+                <h3 class="card-title">Overall Inventory</h3>
+                <div class="stats-grid">
+                    <div class="stat">
+                    <h6 class="stat-title txt-blue">Categories</h6>
+                    <div class="stat-value">{{ stats.categories }}</div>
+                    <div class="stat-sub">Last 7 days</div>
+                    </div>
+                    <div class="stat">
+                    <h6 class="stat-title txt-orange">Total Products</h6>
+                    <div class="stat-value">{{ stats.totalUnits }}</div>
+                    <div class="stat-sub">Revenue ₹{{ stats.revenue }}</div>
+                    </div>
+                    <div class="stat">
+                    <h6 class="stat-title txt-purple">Top Selling</h6>
+                    <div class="stat-value">{{ stats.topSelling }}</div>
+                    <div class="stat-sub">Cost ₹{{ stats.cost }}</div>
+                    </div>
+                    <div class="stat">
+                    <h6 class="stat-title txt-lightred">Low Stocks</h6>
+                    <div class="stat-value">{{ stats.ordered }}</div>
+                    <div class="stat-sub">Not in stock {{ stats.not_in_stock }}</div>
+                    </div>
+                </div>
+                </section>
+
+                <!-- Products -->
+                <section class="card table-card">
+                <div class="table-header" v-if="!viewingProduct">
+                    <h3>Products</h3>
+                    <div class="table-actions">
+                    <button class="btn-blue" @click="openAdd">Add Product</button>
+                    <button class="btn-white" @click="openFilterModal"><i class="fa-solid fa-filter"></i> Filters</button>
+                    <button class="btn-white" @click="downloadAll">Download all</button>
+                    </div>
+                </div>
+
+                <!-- Mostrar LISTADO solo si NO hay producto en vista -->
+                <product-list
+                v-if="!viewingProduct"
+                :products="pagedProducts"
+                :page="currentPage"
+                :total-pages="totalPages"
+                @next="nextPage"
+                @prev="prevPage"
+                @select="viewProduct"
+                @edit="openEdit"
+                @delete="requestDelete"
+                />
+
+                <!-- Mostrar VISTA DETALLADA solo cuando viewingProduct exista -->
+                <product-view
+                v-if="viewingProduct"
+                :product="viewingProduct"
+                @close="onViewClose"
+                @edit="openEdit"
+                @delete="requestDelete"
+                />
+                </section>
             </div>
 
             <product-form v-if="showForm" :product="editingProduct" @close="closeForm" @saved="onSaved" />
-            <product-view v-if="viewingProduct" :product="viewingProduct" @close="onViewClose" @edit="openEdit" @delete="requestDelete" />
 
             <filter-modal
                 v-if="showFilterModal"
@@ -36,7 +94,7 @@
                 @cancel="onCancelDelete"
             />
 
-            <div id="overlay" :class="{ 'overlay-hidden': !overlayVisible }" @click="overlayClicked"></div>
+            <div id="" :class="{ 'overlay-hidden': !overlayVisible }" @click="overlayClicked"></div>
         </div>
     </div>
 </template>
@@ -103,14 +161,14 @@ export default {
           this.currentPage = 1;
           this.applyFilters();
         },
+        // navegación desde el Navbar o Sidebar
         onNavigate(key) {
           const map = {
-             home: "/",
-                products: "/inventory",
-                inventory: "/inventory",
-                suppliers: "/suppliers",
-                admins: "/admin",
-                orders: "/orders"
+            home: "/",
+            products: "/products",
+            suppliers: "/suppliers",
+            admins: "/admins",
+            orders: "/orders"
           };
           const path = map[key] || "/";
 
