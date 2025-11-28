@@ -9,9 +9,6 @@
         <button class="btn btn-outline" @click="$emit('edit', product)">
           <i class="fa-solid fa-pencil"></i> Edit
         </button>
-        <button class="btn btn-danger" @click="onDelete">
-          <i class="fa-solid fa-trash"></i> Delete
-        </button>
         <button class="btn btn-primary" @click="download">
           <i class="fa-solid fa-download"></i> Download
         </button>
@@ -169,9 +166,16 @@ export default {
   color: white;
   border-color: #1471ff;
 }
+.btn-primary:hover {
+  background: #436495;
+  border-color: #436495;
+}
 .btn-outline {
   background: white;
   color: #444;
+}
+.btn-outline:hover {
+  background: #f5f5f5;
 }
 .btn-danger {
   background: #fff6f6;

@@ -12,7 +12,12 @@
       </thead>
       <tbody>
         <tr v-for="s in suppliers" :key="s.id">
-          <td><a href="#" @click.prevent="$emit('select', s)" class="product-link">{{ s.name }}</a></td>
+          <td>
+            <div class="name-cell">
+              <img :src="s.photo_url || fallback" @error="onImgError" class="thumb" />
+              <a href="#" @click.prevent="$emit('select', s)" class="product-link">{{ s.name }}</a>
+            </div>
+          </td>
           <td>{{ s.contact || '-' }}</td>
           <td>{{ s.phone || '-' }}</td>
           <td>{{ s.email || '-' }}</td>
@@ -43,12 +48,30 @@ export default {
     page: { type: Number, default: 1 },
     totalPages: { type: Number, default: 1 }
   },
+  data() {
+    return {
+      // placeholder data URI (SVG pequeño). Evita llamadas externas.
+      fallback:
+        "data:image/svg+xml;utf8," +
+        encodeURIComponent(
+          "<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='100%' height='100%' fill='#f4f4f4'/><text x='50%' y='50%' dy='.35em' text-anchor='middle' fill='#9c9c9c' font-family='Arial' font-size='10'>No</text></svg>"
+        )
+    };
+  },
   computed: {
     hasPrev() {
       return this.page > 1;
     },
     hasNext() {
       return this.page < this.totalPages;
+    }
+  },
+  methods: {
+    onImgError(e) {
+      const img = e.target;
+      if (img.dataset.failed) return;
+      img.dataset.failed = "true";
+      img.src = this.fallback;
     }
   }
 };
@@ -70,4 +93,7 @@ export default {
 .no-results { padding:24px; text-align:center; color:#888; }
 .product-link { color:#1f7bff; text-decoration:none; font-weight:500; }
 .product-link:hover { color:#1766d1; }
+
+.name-cell { display:flex; align-items:center; gap:12px; }
+.thumb { width:40px; height:40px; object-fit:cover; border-radius:6px; border:1px solid #eee; }
 </style>
