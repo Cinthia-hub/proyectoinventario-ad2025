@@ -5,7 +5,7 @@
             <!-- Usamos el nuevo Navbar -->
             <Navbar
               :sidebar-open="sidebarOpen"
-              :placeholder="'Buscar producto, proveedor, orden...'"
+              :placeholder="'Buscar producto ...'"
               @toggle-sidebar="toggleSidebar"
               @search="handleSearch"
               @navigate="onNavigate"
@@ -235,10 +235,19 @@ export default {
         this.showForm = false;
         this.overlayVisible = false;
         },
+        
         async onSaved() {
-        await this.load();
-        this.closeForm();
+          await this.load();
+
+          if (this.viewingProduct && this.viewingProduct.id) {
+            const updated = this.products.find(p => p.id === this.viewingProduct.id);
+            this.viewingProduct = updated || null;
+          }
+
+          this.closeForm();
         },
+        // ---------------------------------------
+
         viewProduct(product) {
         this.viewingProduct = product;
         this.overlayVisible = true;
@@ -268,6 +277,11 @@ export default {
             await api.deleteProduct(this.productToDelete.id);
             // reload products
             await this.load();
+
+            // Si la vista detallada estaba mostrando el producto eliminado, cerrarla
+            if (this.viewingProduct && this.viewingProduct.id === this.productToDelete.id) {
+              this.viewingProduct = null;
+            }
         } catch (err) {
             console.error("Delete failed", err);
             alert("Failed to delete product. See console for details.");
@@ -347,7 +361,6 @@ export default {
 </script>
 
 <style scoped>
-/* mantén tus estilos existentes (los que ya tenías) */
 #dashboard-wrapper {
     display: flex;
     width: 100%;
@@ -439,7 +452,13 @@ export default {
 .stat-sub { font-size: 0.8rem; color: #888; }
 .btn-blue { background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
 .btn-white { background: white; border: 1px solid #ddd; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-left: 8px; }
-
+.btn-blue:hover {
+  background: #436495;
+  border-color: #436495;
+}
+.btn-white:hover {
+  background: #f5f5f5;
+}
 /* Capa oscura para modales */
 #overlay {
     position: fixed; top:0; left:0; width:100%; height:100%;

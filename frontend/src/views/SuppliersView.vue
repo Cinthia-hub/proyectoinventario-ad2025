@@ -15,8 +15,8 @@
         <!-- Header / acciones -->
         <section class="card table-card">
           <div class="table-header">
-            <h3>Proveedores</h3>
-            <div class="table-actions">
+            <h3 v-if="!viewingSupplier">Proveedores</h3>
+            <div v-if="!viewingSupplier" class="table-actions">
               <button class="btn-blue" @click="openAdd">Add Supplier</button>
               <button class="btn-white" @click="openFilterModal"><i class="fas fa-filter"></i> Filters</button>
               <button class="btn-white" @click="downloadAll">Download all</button>
@@ -193,10 +193,22 @@ export default {
       this.showForm = false;
       this.overlayVisible = false;
     },
+    // ---------- CAMBIO IMPORTANTE ----------
+    // Al guardar (crear/editar) recargamos la lista y, si hay una vista abierta,
+    // reasignamos viewingSupplier al objeto recién cargado para que refleje los cambios.
     async onSaved() {
       await this.load();
+
+      // Si el usuario estaba viendo un supplier, actualizamos la vista con la versión recargada
+      if (this.viewingSupplier && this.viewingSupplier.id) {
+        const updated = this.suppliers.find(s => s.id === this.viewingSupplier.id);
+        this.viewingSupplier = updated || null;
+      }
+
       this.closeForm();
     },
+    // ---------------------------------------
+
     viewSupplier(supplier) {
       this.viewingSupplier = supplier;
       this.overlayVisible = true;
@@ -256,7 +268,10 @@ export default {
       this.applyFilters();
     },
     downloadAll() {
-      const rows = [ ["Name","Contact","Phone","Email","Address","Notes"], ...this.suppliers.map(s => [s.name, s.contact||'', s.phone||'', s.email||'', s.address||'', s.notes||'']) ];
+      const rows = [
+        ["Name","Contact","Phone","Email","Address","Notes","PhotoURL"],
+        ...this.suppliers.map(s => [s.name, s.contact||'', s.phone||'', s.email||'', s.address||'', s.notes||'', s.photo_url||''])
+      ];
       const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
       const blob = new Blob([csv], { type: "text/csv" });
       const url = URL.createObjectURL(blob);
@@ -284,4 +299,10 @@ export default {
 .btn-blue { background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
 .btn-white { background: white; border: 1px solid #ddd; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-left: 8px; }
 .overlay-hidden { display: none; }
+.btn-blue:hover {
+  background: #529edb;
+}
+.btn-white:hover {
+  background: #f5f5f5;
+}
 </style>
