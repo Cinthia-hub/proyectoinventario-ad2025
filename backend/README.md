@@ -33,6 +33,7 @@ Si Vite no procesa archivos .vue (error al inicio), instala el plugin Vue y crea
 ```bash
 cd frontend
 npm install -D @vitejs/plugin-vue
+npm install chart.js@^4 vue-chartjs@^5
 ```
 Crea `frontend/vite.config.mjs` (si no existe) con:
 ```javascript

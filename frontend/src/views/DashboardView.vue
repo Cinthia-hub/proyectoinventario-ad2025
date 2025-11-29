@@ -2,17 +2,62 @@
     <div id="dashboard-wrapper">
         <Sidebar :collapsed="!sidebarOpen" @navigate="onNavigate" />
         <div class="main-area" :class="{ 'sidebar-collapsed': !sidebarOpen }">
-            <!-- Usamos el nuevo Navbar -->
             <Navbar
               :sidebar-open="sidebarOpen"
-              :placeholder="'Buscar producto, proveedor, orden...'"
+              :placeholder="'...'"
               @toggle-sidebar="toggleSidebar"
               @search="handleSearch"
               @navigate="onNavigate"
             />
 
             <div class="content">
-                <!-- Aquí va el contenido -->
+                <section class="card stats-card">
+                    <h3 class="card-title">Overall Inventory</h3>
+                    <div class="stats-grid">
+                        <div class="stat">
+                            <h6 class="stat-title txt-blue">Categories</h6>
+                            <div class="stat-value">{{ stats.categories }}</div>
+                            <div class="stat-sub">Last 7 days</div>
+                        </div>
+                        <div class="stat">
+                            <h6 class="stat-title txt-orange">Total Products</h6>
+                            <div class="stat-value">{{ stats.totalUnits }}</div>
+                            <div class="stat-sub">Revenue ₹{{ stats.revenue }}</div>
+                        </div>
+                        <div class="stat">
+                            <h6 class="stat-title txt-purple">Top Selling</h6>
+                            <div class="stat-value">{{ stats.topSelling }}</div>
+                            <div class="stat-sub">Cost ₹{{ stats.cost }}</div>
+                        </div>
+                        <div class="stat">
+                            <h6 class="stat-title txt-lightred">Low Stocks</h6>
+                            <div class="stat-value">{{ stats.ordered }}</div>
+                            <div class="stat-sub">Not in stock {{ stats.not_in_stock }}</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card chart-card">
+                    <div class="chart-header">
+                        <h3>Product Sales Analytics</h3>
+                        <div class="select-wrapper">
+                            <label for="chart-product">Ver ventas de: </label>
+                            <select id="chart-product" v-model="selectedProductId" @change="updateChart">
+                                <option :value="null" disabled>Selecciona un producto</option>
+                                <option v-for="prod in products" :key="prod.id" :value="prod.id">
+                                    {{ prod.nombre }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container" v-if="selectedProductId">
+                        <Bar :data="chartData" :options="chartOptions" />
+                    </div>
+                    <div v-else class="no-chart">
+                        <p>Selecciona un producto arriba para ver su gráfica de ventas.</p>
+                    </div>
+                </section>
             </div>
 
             <product-form v-if="showForm" :product="editingProduct" @close="closeForm" @saved="onSaved" />
@@ -27,7 +72,6 @@
                 @close="() => { showFilterModal = false; overlayVisible = false }"
             />
 
-            <!-- Confirm delete modal -->
             <confirm-modal
                 :visible="confirmModalVisible"
                 title="Delete product"
@@ -51,9 +95,16 @@ import FilterModal from "../components/products/FilterModal.vue";
 import ConfirmModal from "../components/layout/ConfirmModal.vue";
 import * as api from "../api/product.api.js";
 
+// Importaciones para la Gráfica (Chart.js)
+import { Bar } from 'vue-chartjs'
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
+
+// Registrar componentes de Chart.js
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
+
 export default {
     name: "DashboardView",
-    components: { Sidebar, Navbar, ProductList, ProductForm, ProductView, FilterModal, ConfirmModal },
+    components: { Sidebar, Navbar, ProductList, ProductForm, ProductView, FilterModal, ConfirmModal, Bar },
     data() {
         return {
         products: [],
@@ -80,7 +131,22 @@ export default {
         // delete confirmation
         confirmModalVisible: false,
         productToDelete: null,
-        confirmMessage: ""
+        confirmMessage: "",
+        
+        // --- DATOS NUEVOS PARA LA GRÁFICA ---
+        selectedProductId: null,
+        chartData: {
+            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            datasets: [ { data: [] } ]
+        },
+        chartOptions: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                title: { display: true, text: 'Ventas de la semana' }
+            }
+        }
         };
     },
     computed: {
@@ -97,7 +163,6 @@ export default {
         toggleSidebar() {
         this.sidebarOpen = !this.sidebarOpen;
         },
-        // handler que recibe la búsqueda desde el Navbar
         handleSearch(term) {
           this.search = term;
           this.currentPage = 1;
@@ -105,12 +170,12 @@ export default {
         },
         onNavigate(key) {
           const map = {
-             home: "/",
-                products: "/inventory",
-                inventory: "/inventory",
-                suppliers: "/suppliers",
-                admins: "/admin",
-                orders: "/orders"
+            home: "/",
+            products: "/inventory",
+            inventory: "/inventory",
+            suppliers: "/suppliers",
+            admins: "/admin",
+            orders: "/orders"
           };
           const path = map[key] || "/";
 
@@ -126,7 +191,6 @@ export default {
         this.showFilterModal = false;
         this.viewingProduct = null;
         this.overlayVisible = false;
-        // also hide confirm modal if outside clicked
         this.confirmModalVisible = false;
         this.productToDelete = null;
         },
@@ -190,7 +254,6 @@ export default {
         this.overlayVisible = false;
         },
 
-        // NEW: request to delete -> open confirm modal
         requestDelete(product) {
         this.productToDelete = product;
         this.confirmMessage = `Delete "<strong>${product.nombre}</strong>"?`;
@@ -198,7 +261,6 @@ export default {
         this.overlayVisible = true;
         },
 
-        // NEW: user confirmed delete
         async onConfirmDelete() {
         if (!this.productToDelete || !this.productToDelete.id) {
             this.confirmModalVisible = false;
@@ -208,7 +270,6 @@ export default {
         }
         try {
             await api.deleteProduct(this.productToDelete.id);
-            // reload products
             await this.load();
         } catch (err) {
             console.error("Delete failed", err);
@@ -220,7 +281,6 @@ export default {
         }
         },
 
-        // NEW: user cancelled delete
         onCancelDelete() {
         this.confirmModalVisible = false;
         this.overlayVisible = false;
@@ -271,11 +331,46 @@ export default {
         this.products.forEach((p) => {
             if (p.category) set.add(p.category);
             totalUnits += p.quantity || 0;
-            revenue += (p.quantity || 0) * (p.price || 0);
+            revenue += (p.quantity || 0) * (p.price || 0); // Asumiendo Precio de Venta
+            // Para 'Cost' usualmente se necesita 'Buying Price', usaremos price * 0.7 como ejemplo si no existe buying_price
+            let buyingPrice = p.buying_price || (p.price * 0.7); 
+            cost += (p.quantity || 0) * buyingPrice;
         });
-        const topSlice = sorted.slice(0, Math.max(0, top_number));
-        topSlice.forEach((p) => (cost += (p.quantity || 0) * (p.price || 0)));
-        this.stats = { categories: set.size, totalUnits, revenue: Math.round(revenue), topSelling: top_number, cost: Math.round(cost), ordered: lowStockOrdered, not_in_stock: notInStock };
+        
+        this.stats = { 
+            categories: set.size, 
+            totalUnits, 
+            revenue: Math.round(revenue), 
+            topSelling: top_number, 
+            cost: Math.round(cost), 
+            ordered: lowStockOrdered, 
+            not_in_stock: notInStock 
+        };
+        },
+        
+        // --- LOGICA PARA ACTUALIZAR GRÁFICA ---
+        updateChart() {
+            if (!this.selectedProductId) return;
+            
+            const product = this.products.find(p => p.id === this.selectedProductId);
+            if(product) {
+                // Generamos datos simulados basados en el ID para que varíe un poco, 
+                // ya que normalmente necesitarías una tabla de "Ventas Históricas".
+                // Aquí solo simulamos para mostrar la funcionalidad visual.
+                const base = product.quantity > 0 ? Math.floor(product.quantity / 5) : 5;
+                const dataSimulada = Array.from({length: 7}, () => Math.floor(Math.random() * base) + 1);
+
+                this.chartData = {
+                    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                    datasets: [
+                        {
+                            label: `Ventas de ${product.nombre}`,
+                            backgroundColor: '#2196f3',
+                            data: dataSimulada
+                        }
+                    ]
+                };
+            }
         }
     },
     mounted() {
@@ -289,15 +384,13 @@ export default {
 </script>
 
 <style scoped>
-/* mantén tus estilos existentes (los que ya tenías) */
+/* ESTILOS PREVIOS (MANTENIDOS) */
 #dashboard-wrapper {
     display: flex;
     width: 100%;
     min-height: 100vh;
     position: relative;
 }
-
-/* 2. ÁREA PRINCIPAL (Donde va el contenido) */
 .main-area {
     width: 100%;
     min-height: 100vh;
@@ -306,73 +399,29 @@ export default {
     display: flex;
     flex-direction: column;
 }
-
-/* 3. LÓGICA DEL SIDEBAR (El truco para que no se encime) */
-/* Cuando la sidebar está ABIERTA (estado normal), empujamos el contenido 260px */
-.main-area:not(.sidebar-collapsed) {
-    margin-left: 260px; 
-}
-
-/* Cuando la sidebar está CERRADA (chiquita), empujamos solo 80px */
-.sidebar-collapsed .main-area {
-    margin-left: 80px;
-}
-
-/* 4. TOPBAR */
+.main-area:not(.sidebar-collapsed) { margin-left: 260px; }
+.sidebar-collapsed .main-area { margin-left: 80px; }
 .topbar {
-    height: 64px;
-    background-color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    border-bottom: 1px solid #e0e0e0;
-    position: sticky;
-    top: 0;
-    z-index: 99; /* Para que pase por encima del contenido al scrollear */
+    height: 64px; background-color: #ffffff; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 99;
 }
-
-.topbar-left, .topbar-right {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-/* 5. ESTILOS DE CONTENIDO Y TARJETAS */
-.content {
-    padding: 20px;
-    flex-grow: 1; /* Ocupa el espacio restante */
-}
+.topbar-left, .topbar-right { display: flex; align-items: center; gap: 15px; }
+.content { padding: 20px; flex-grow: 1; }
 
 .card {
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
+    background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
+.table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
 
-.table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-}
-
-/* Utilidades de texto y botones */
+/* UTILIDADES TEXTO/BOTONES */
 .menu-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
 .search-wrapper { position: relative; display: flex; align-items: center; }
 .search-input { padding: 8px 35px 8px 10px; border: 1px solid #ddd; border-radius: 4px; width: 250px; }
 .search-icon { position: absolute; right: 10px; color: #888; }
 .icon-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: #555; }
 
-/* Colores para estadísticas */
 .txt-blue { color: #2196f3; }
 .txt-orange { color: #ff9800; }
 .txt-purple { color: #9c27b0; }
@@ -382,10 +431,43 @@ export default {
 .btn-blue { background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
 .btn-white { background: white; border: 1px solid #ddd; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-left: 8px; }
 
-/* Capa oscura para modales */
 #overlay {
     position: fixed; top:0; left:0; width:100%; height:100%;
     background: rgba(0,0,0,0.5); z-index: 1000;
 }
 .overlay-hidden { display: none; }
+
+/* NUEVOS ESTILOS PARA EL DASHBOARD Y GRÁFICA */
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.select-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.select-wrapper select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    outline: none;
+}
+.chart-container {
+    position: relative;
+    height: 300px; /* Altura fija para que la gráfica no crezca infinitamente */
+    width: 100%;
+}
+.no-chart {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 2px dashed #ddd;
+}
 </style>
