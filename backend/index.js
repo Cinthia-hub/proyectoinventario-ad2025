@@ -6,6 +6,7 @@ import productsRouter from "./src/routes/product.routes.js";
 import suppliersRouter from "./src/routes/suppliers.routes.js";
 import authRouter from "./src/routes/auth.routes.js";
 import "./src/config/db.js"; // Tu conexión a Firebase
+import storesRoutes from "./src/routes/stores.routes.js";
 
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/suppliers", suppliersRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/stores", storesRoutes);
 
 app.get("/health", (req, res) => res.json({ ok: true }));
 
