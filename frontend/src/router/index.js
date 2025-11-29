@@ -6,7 +6,7 @@ import ReportsView from '../views/ReportsView.vue'
 import StoreView from '../views/StoreView.vue'
 import OrdersView from '../views/OrdersView.vue'
 import SuppliersView from '../views/SuppliersView.vue'
-import AdminView from '../views/AdminView.vue'
+import AdminsView from '../views/AdminsView.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -54,9 +54,9 @@ const router = createRouter({
             meta: { requiresAuth: true }
         },
         {
-            path: '/admin',
-            name: 'admin',
-            component: AdminView,
+            path: '/users',
+            name: 'users',
+            component: AdminsView,
             meta: { requiresAuth: true }
         }
     ]
