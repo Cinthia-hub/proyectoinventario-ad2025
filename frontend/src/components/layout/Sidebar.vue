@@ -1,8 +1,8 @@
 <template>
   <aside :class="['app-sidebar', { collapsed }]" role="navigation" aria-label="Main navigation">
     <div class="sidebar-top">
-      <img class="sidebar-logo" src="../../assets/logo.png" alt="Mecadito Logo" />
-      <span class="brand">Mecadito</span>
+      <img class="sidebar-logo" src="../../assets/logo.png" alt="Mercadito Logo" />
+      <span class="brand">Mercadito</span>
     </div>
 
     <nav class="sidebar-menu" aria-label="Primary">
@@ -14,8 +14,8 @@
           </a>
         </li>
 
-        <li :class="['menu-item', { active: isActive('/admin') }]">
-          <a href="#" class="menu-link" @click.prevent="navigateTo('/admin', 'admins')">
+        <li :class="['menu-item', { active: isActive('/users') }]">
+          <a href="#" class="menu-link" @click.prevent="navigateTo('/users', 'users')">
             <i class="fa-regular fa-user"></i>
             <span>Administrators</span>
           </a>
