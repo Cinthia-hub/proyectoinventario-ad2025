@@ -7,33 +7,34 @@ import StoreView from '../views/StoreView.vue'
 import OrdersView from '../views/OrdersView.vue'
 import SuppliersView from '../views/SuppliersView.vue'
 import AdminsView from '../views/AdminsView.vue'
+import SettingsView from '../views/SettingsView.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
     routes: [
         {
-        path: '/',
-        name: 'login',
-        component: LoginView,
-        meta: { guest: true }
+            path: '/',
+            name: 'login',
+            component: LoginView,
+            meta: { guest: true }
         },
         {
-        path: '/dashboard',
-        name: 'dashboard',
-        component: DashboardView,
-        meta: { requiresAuth: true }
+            path: '/dashboard',
+            name: 'dashboard',
+            component: DashboardView,
+            meta: { requiresAuth: true }
         },
         {
-        path: '/inventory',
-        name: 'inventory',
-        component: InventoryView,
-        meta: { requiresAuth: true }
+            path: '/inventory',
+            name: 'inventory',
+            component: InventoryView,
+            meta: { requiresAuth: true }
         },
         {
-        path: '/reports',
-        name: 'reports',
-        component: ReportsView,
-        meta: { requiresAuth: true }
+            path: '/reports',
+            name: 'reports',
+            component: ReportsView,
+            meta: { requiresAuth: true }
         },
         {
             path: '/store',
@@ -57,6 +58,12 @@ const router = createRouter({
             path: '/users',
             name: 'users',
             component: AdminsView,
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/settings',  // La URL que aparecerá en el navegador
+            name: 'Settings',
+            component: SettingsView,
             meta: { requiresAuth: true }
         }
     ]
