@@ -1,391 +1,428 @@
 <template>
-    <div id="dashboard-wrapper">
-        <Sidebar :collapsed="!sidebarOpen" @navigate="onNavigate" />
-        <div class="main-area" :class="{ 'sidebar-collapsed': !sidebarOpen }">
-            <!-- Usamos el nuevo Navbar -->
-            <Navbar
-              :sidebar-open="sidebarOpen"
-              :placeholder="'Buscar producto, proveedor, orden...'"
-              @toggle-sidebar="toggleSidebar"
-              @search="handleSearch"
-              @navigate="onNavigate"
-            />
+  <div id="dashboard-wrapper">
+    <Sidebar :collapsed="!sidebarOpen" @navigate="onNavigate" />
+    
+    <div class="main-area" :class="{ 'sidebar-collapsed': !sidebarOpen }">
+      <Navbar
+        :sidebar-open="sidebarOpen"
+        :placeholder="'Buscar tienda...'"
+        @toggle-sidebar="toggleSidebar"
+        @search="handleSearch"
+        @navigate="onNavigate"
+      />
 
-            <div class="content">
-                <!-- Aquí va el contenido -->
+      <div class="content">
+        <section class="card table-card">
+          <div class="table-header">
+            <h3>Administrar Tiendas</h3>
+            <div class="table-actions">
+              <button class="btn-blue" @click="openAdd">
+                <i class="fa-solid fa-plus"></i> Add Store
+              </button>
+              
+              <button class="btn-white" @click="openFilterModal">
+                <i class="fa-solid fa-filter"></i> Filters
+              </button>
+
+              <button class="btn-white" @click="downloadAll">
+                Download all
+              </button>
             </div>
+          </div>
 
-            <product-form v-if="showForm" :product="editingProduct" @close="closeForm" @saved="onSaved" />
-            <product-view v-if="viewingProduct" :product="viewingProduct" @close="onViewClose" @edit="openEdit" @delete="requestDelete" />
+          <div class="table-responsive">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Dirección</th>
+                  <th>Teléfono</th>
+                  <th>Gerente</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="store in pagedStores" :key="store.id">
+                  <td>
+                    <div class="name-cell">
+                      <div class="avatar">
+                        {{ store.name ? store.name.charAt(0).toUpperCase() : 'T' }}
+                      </div>
+                      <span class="name-text">{{ store.name }}</span>
+                    </div>
+                  </td>
+                  <td>{{ store.address }}</td>
+                  <td>{{ store.phone }}</td>
+                  <td>{{ store.manager }}</td>
+                  <td class="actions-cell">
+                    <button class="action-btn edit" @click="openEdit(store)">Edit</button>
+                    <button class="action-btn delete" @click="requestDelete(store)">Delete</button>
+                  </td>
+                </tr>
+                <tr v-if="stores.length === 0">
+                  <td colspan="5" class="empty-state">
+                    No hay tiendas registradas o cargando...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-            <filter-modal
-                v-if="showFilterModal"
-                :fields="filterFields"
-                :initial="currentFilter"
-                @apply="applyFilter"
-                @clear="clearFilter"
-                @close="() => { showFilterModal = false; overlayVisible = false }"
-            />
+          <div class="pagination-wrapper" v-if="totalPages > 1">
+            <button class="page-btn" :disabled="currentPage <= 1" @click="prevPage">Anterior</button>
+            <span class="page-info">Página {{ currentPage }} de {{ totalPages }}</span>
+            <button class="page-btn" :disabled="currentPage >= totalPages" @click="nextPage">Siguiente</button>
+          </div>
+        </section>
+      </div>
 
-            <!-- Confirm delete modal -->
-            <confirm-modal
-                :visible="confirmModalVisible"
-                title="Delete product"
-                :message="confirmMessage"
-                @confirm="onConfirmDelete"
-                @cancel="onCancelDelete"
-            />
-
-            <div id="overlay" :class="{ 'overlay-hidden': !overlayVisible }" @click="overlayClicked"></div>
+      <div v-if="showForm" class="modal-backdrop">
+        <div class="modal-card">
+          <div class="modal-header">
+            <h3>{{ isEditing ? 'Editar Tienda' : 'Nueva Tienda' }}</h3>
+            <button class="close-btn" @click="closeForm">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Nombre de la Tienda</label>
+              <input v-model="formStore.name" type="text" class="input-field" placeholder="Ej: Sucursal Centro">
+            </div>
+            <div class="form-group">
+              <label>Dirección</label>
+              <input v-model="formStore.address" type="text" class="input-field" placeholder="Calle y número">
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Teléfono</label>
+                <input v-model="formStore.phone" type="text" class="input-field">
+              </div>
+              <div class="form-group">
+                <label>Gerente</label>
+                <input v-model="formStore.manager" type="text" class="input-field">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-white" @click="closeForm">Cancelar</button>
+            <button class="btn-blue" @click="saveStore">
+              {{ isSaving ? 'Guardando...' : 'Guardar' }}
+            </button>
+          </div>
         </div>
+      </div>
+
+      <div v-if="showFilterModal" class="modal-backdrop">
+        <div class="modal-card small">
+          <div class="modal-header">
+            <h3>Filtrar Tiendas</h3>
+            <button class="close-btn" @click="closeFilterModal">×</button>
+          </div>
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Campo</label>
+              <select v-model="currentFilter.field" class="input-field">
+                <option value="" disabled>Selecciona un campo</option>
+                <option v-for="field in filterFields" :key="field.value" :value="field.value">
+                  {{ field.label }}
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Valor</label>
+              <input v-model="currentFilter.value" type="text" class="input-field" placeholder="Escribe para buscar...">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-white" @click="clearFilter">Limpiar</button>
+            <button class="btn-blue" @click="applyFilter">Aplicar</button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="showDeleteConfirm" class="modal-backdrop">
+        <div class="modal-card small">
+          <div class="modal-header">
+            <h3>Confirmar Borrado</h3>
+          </div>
+          <div class="modal-body">
+            <p>¿Estás seguro de que quieres eliminar <strong>{{ storeToDelete?.name }}</strong>?</p>
+            <p class="warning-text">Esta acción no se puede deshacer.</p>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-white" @click="closeDelete">Cancelar</button>
+            <button class="btn-red" @click="confirmDelete">Eliminar</button>
+          </div>
+        </div>
+      </div>
+
     </div>
+  </div>
 </template>
 
 <script>
 import Sidebar from "../components/layout/Sidebar.vue";
 import Navbar from "../components/layout/Navbar.vue";
-import ProductList from "../components/products/ProductList.vue";
-import ProductForm from "../components/products/ProductForm.vue";
-import ProductView from "../components/products/ProductView.vue";
-import FilterModal from "../components/products/FilterModal.vue";
-import ConfirmModal from "../components/layout/ConfirmModal.vue";
-import * as api from "../api/product.api.js";
+import * as api from "../api/stores.api.js";
 
 export default {
-    name: "DashboardView",
-    components: { Sidebar, Navbar, ProductList, ProductForm, ProductView, FilterModal, ConfirmModal },
-    data() {
-        return {
-        products: [],
-        filtered: [],
-        search: "",
-        currentPage: 1,
-        perPage: 5,
-        showForm: false,
-        editingProduct: null,
-        overlayVisible: false,
-        viewingProduct: null,
-        showFilterModal: false,
-        currentFilter: { field: "", value: "" },
-        filterFields: [
-            { label: "Products", value: "nombre" },
-            { label: "Buying Price", value: "price" },
-            { label: "Quantity", value: "quantity" },
-            { label: "Threshold Value", value: "threshold_value" },
-            { label: "Expiry Date", value: "expiry_date" },
-            { label: "Availability", value: "availability" }
-        ],
-        stats: { categories: 0, totalUnits: 0, revenue: 0, topSelling: 0, cost: 0, ordered: 0, not_in_stock: 0 },
-        sidebarOpen: true,
-        // delete confirmation
-        confirmModalVisible: false,
-        productToDelete: null,
-        confirmMessage: ""
-        };
-    },
-    computed: {
-        totalPages() {
-        const total = this.filtered.length;
-        return Math.max(1, Math.ceil(total / this.perPage));
-        },
-        pagedProducts() {
-        const start = (this.currentPage - 1) * this.perPage;
-        return this.filtered.slice(start, start + this.perPage);
-        }
-    },
-    methods: {
-        toggleSidebar() {
-        this.sidebarOpen = !this.sidebarOpen;
-        },
-        // handler que recibe la búsqueda desde el Navbar
-        handleSearch(term) {
-          this.search = term;
-          this.currentPage = 1;
-          this.applyFilters();
-        },
-        // navegación desde el Navbar o Sidebar
-        onNavigate(key) {
-          const map = {
-            home: "/",
-            products: "/products",
-            suppliers: "/suppliers",
-            admins: "/admins",
-            orders: "/orders"
-          };
-          const path = map[key] || "/";
+  name: "StoresView",
+  components: { Sidebar, Navbar },
+  data() {
+    return {
+      sidebarOpen: true,
+      search: "",
+      currentPage: 1,
+      perPage: 7,
+      isSaving: false,
+      
+      stores: [],
+      
+      // Control del Formulario
+      showForm: false,
+      isEditing: false,
+      formStore: { name: "", address: "", phone: "", manager: "" },
+      
+      // Control del Borrado
+      showDeleteConfirm: false,
+      storeToDelete: null,
 
-          if (this.$router) {
-            this.$router.push(path).catch(() => {});
-          } else {
-            console.warn("Router no disponible, navegar a:", path);
-          }
-        },
+      // --- DATOS NUEVOS PARA FILTROS ---
+      showFilterModal: false,
+      currentFilter: { field: "", value: "" },
+      filterFields: [
+        { label: "Nombre", value: "name" },
+        { label: "Dirección", value: "address" },
+        { label: "Gerente", value: "manager" },
+        { label: "Teléfono", value: "phone" }
+      ]
+    };
+  },
+  computed: {
+    filteredStores() {
+      // 1. Búsqueda General (Barra superior)
+      let tempStores = this.stores;
+      const s = this.search.toLowerCase();
+      
+      if (s) {
+        tempStores = tempStores.filter(store => {
+          const name = store.name ? store.name.toLowerCase() : "";
+          const manager = store.manager ? store.manager.toLowerCase() : "";
+          return name.includes(s) || manager.includes(s);
+        });
+      }
 
-        overlayClicked() {
-        this.showForm = false;
-        this.showFilterModal = false;
-        this.viewingProduct = null;
-        this.overlayVisible = false;
-        // also hide confirm modal if outside clicked
-        this.confirmModalVisible = false;
-        this.productToDelete = null;
-        },
-        async load() {
-        this.products = await api.getProducts();
-        this.applyFilters();
-        this.computeStats();
-        },
-        applyFilters() {
-        const s = this.search.trim().toLowerCase();
-        if (!s) {
-            this.filtered = [...this.products];
+      // 2. Filtro Específico (Modal)
+      if (this.currentFilter.field && this.currentFilter.value) {
+        const field = this.currentFilter.field;
+        const val = this.currentFilter.value.toLowerCase();
+        
+        tempStores = tempStores.filter(store => {
+          const fieldValue = store[field] ? store[field].toString().toLowerCase() : "";
+          return fieldValue.includes(val);
+        });
+      }
+
+      return tempStores;
+    },
+    totalPages() {
+      return Math.ceil(this.filteredStores.length / this.perPage) || 1;
+    },
+    pagedStores() {
+      const start = (this.currentPage - 1) * this.perPage;
+      return this.filteredStores.slice(start, start + this.perPage);
+    }
+  },
+  methods: {
+    toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; },
+    handleSearch(term) { this.search = term; this.currentPage = 1; },
+    onNavigate(key) {
+      const map = { home: "/", products: "/products", inventory: "/inventory", suppliers: "/suppliers", orders: "/orders", stores: "/stores" };
+      if (this.$router) this.$router.push(map[key] || "/");
+    },
+
+    // --- API ---
+    async load() {
+      try {
+        const data = await api.getStores();
+        this.stores = Array.isArray(data) ? data : [];
+      } catch (error) {
+        console.error("Error cargando tiendas:", error);
+      }
+    },
+
+    async saveStore() {
+      this.isSaving = true;
+      try {
+        if (this.isEditing) {
+          await api.updateStore(this.formStore.id, this.formStore);
         } else {
-            this.filtered = this.products.filter((p) => {
-            return ["nombre", "category", "expiry_date", "availability"].some((k) =>
-                (p[k] || "").toString().toLowerCase().includes(s)
-            );
-            });
+          await api.createStore(this.formStore);
         }
-        if (this.currentFilter && this.currentFilter.field && this.currentFilter.value !== "") {
-            const { field, value } = this.currentFilter;
-            this.filtered = this.filtered.filter((product) => {
-            const dataValue = product[field];
-            if (typeof dataValue === "string") {
-                return dataValue.toLowerCase().includes(value.toLowerCase());
-            } else {
-                return dataValue == value;
-            }
-            });
-        }
-        if (this.currentPage > this.totalPages) this.currentPage = this.totalPages;
-        },
-        onSearch() {
-        this.currentPage = 1;
-        this.applyFilters();
-        },
-        openAdd() {
-        this.editingProduct = null;
-        this.showForm = true;
-        this.overlayVisible = true;
-        },
-        openEdit(product) {
-        this.editingProduct = product;
-        this.showForm = true;
-        this.overlayVisible = true;
-        },
-        closeForm() {
-        this.showForm = false;
-        this.overlayVisible = false;
-        },
-        async onSaved() {
         await this.load();
         this.closeForm();
-        },
-        viewProduct(product) {
-        this.viewingProduct = product;
-        this.overlayVisible = true;
-        },
-        onViewClose() {
-        this.viewingProduct = null;
-        this.overlayVisible = false;
-        },
-
-        // NEW: request to delete -> open confirm modal
-        requestDelete(product) {
-        this.productToDelete = product;
-        this.confirmMessage = `Delete "<strong>${product.nombre}</strong>"?`;
-        this.confirmModalVisible = true;
-        this.overlayVisible = true;
-        },
-
-        // NEW: user confirmed delete
-        async onConfirmDelete() {
-        if (!this.productToDelete || !this.productToDelete.id) {
-            this.confirmModalVisible = false;
-            this.overlayVisible = false;
-            this.productToDelete = null;
-            return;
-        }
-        try {
-            await api.deleteProduct(this.productToDelete.id);
-            // reload products
-            await this.load();
-        } catch (err) {
-            console.error("Delete failed", err);
-            alert("Failed to delete product. See console for details.");
-        } finally {
-            this.confirmModalVisible = false;
-            this.overlayVisible = false;
-            this.productToDelete = null;
-        }
-        },
-
-        // NEW: user cancelled delete
-        onCancelDelete() {
-        this.confirmModalVisible = false;
-        this.overlayVisible = false;
-        this.productToDelete = null;
-        },
-
-        prevPage() {
-        if (this.currentPage > 1) this.currentPage--;
-        },
-        nextPage() {
-        if (this.currentPage < this.totalPages) this.currentPage++;
-        },
-        openFilterModal() {
-        this.showFilterModal = true;
-        this.overlayVisible = true;
-        },
-        applyFilter(payload) {
-        this.currentFilter = { field: payload.field, value: payload.value };
-        this.showFilterModal = false;
-        this.overlayVisible = false;
-        this.currentPage = 1;
-        this.applyFilters();
-        },
-        clearFilter() {
-        this.currentFilter = { field: "", value: "" };
-        this.showFilterModal = false;
-        this.overlayVisible = false;
-        this.currentPage = 1;
-        this.applyFilters();
-        },
-        async downloadAll() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const headers = ["Product Name", "Price", "Quantity", "Threshold Value", "Expiry Date", "Availability"];
-        const body = this.products.map((p) => [p.nombre, p.price, p.quantity, p.threshold_value, p.expiry_date, p.availability]);
-        doc.autoTable({ head: [headers], body, margin: { top: 20 } });
-        doc.save("all_products.pdf");
-        },
-        computeStats() {
-        const set = new Set();
-        let totalUnits = 0;
-        let revenue = 0;
-        let cost = 0;
-        const sorted = [...this.products].sort((a, b) => (b.quantity || 0) - (a.quantity || 0));
-        const top_number = Math.min(Math.floor(this.products.length / 2), sorted.length ? sorted[0].quantity : 0);
-        const notInStock = this.products.filter((p) => (p.quantity || 0) === 0).length;
-        const lowStockOrdered = this.products.filter((p) => (p.quantity === 0 || p.quantity <= p.threshold_value) && (p.on_the_way || 0) > 0).length;
-        this.products.forEach((p) => {
-            if (p.category) set.add(p.category);
-            totalUnits += p.quantity || 0;
-            revenue += (p.quantity || 0) * (p.price || 0);
-        });
-        const topSlice = sorted.slice(0, Math.max(0, top_number));
-        topSlice.forEach((p) => (cost += (p.quantity || 0) * (p.price || 0)));
-        this.stats = { categories: set.size, totalUnits, revenue: Math.round(revenue), topSelling: top_number, cost: Math.round(cost), ordered: lowStockOrdered, not_in_stock: notInStock };
-        }
+      } catch (error) {
+        console.error("Error al guardar:", error);
+        alert("Hubo un error al guardar.");
+      } finally {
+        this.isSaving = false;
+      }
     },
-    mounted() {
-        this.load();
-        if (window.innerWidth < 900) this.sidebarOpen = false;
-        window.addEventListener("resize", () => {
+
+    async confirmDelete() {
+      try {
+        await api.deleteStore(this.storeToDelete.id);
+        await this.load();
+        this.closeDelete();
+      } catch (error) {
+        console.error("Error al eliminar:", error);
+        alert("No se pudo eliminar la tienda.");
+      }
+    },
+
+    // --- MODALES FORMULARIO ---
+    openAdd() {
+      this.isEditing = false;
+      this.formStore = { name: "", address: "", phone: "", manager: "" };
+      this.showForm = true;
+    },
+    openEdit(store) {
+      this.isEditing = true;
+      this.formStore = { ...store }; 
+      this.showForm = true;
+    },
+    closeForm() { this.showForm = false; },
+    
+    requestDelete(store) {
+      this.storeToDelete = store;
+      this.showDeleteConfirm = true;
+    },
+    closeDelete() {
+      this.showDeleteConfirm = false;
+      this.storeToDelete = null;
+    },
+
+    // --- MÉTODOS DE FILTRO Y DESCARGA (NUEVOS) ---
+    openFilterModal() {
+      this.showFilterModal = true;
+    },
+    closeFilterModal() {
+      this.showFilterModal = false;
+    },
+    applyFilter() {
+      // El filtro ya es reactivo por el computed 'filteredStores', solo cerramos modal
+      this.showFilterModal = false;
+      this.currentPage = 1; 
+    },
+    clearFilter() {
+      this.currentFilter = { field: "", value: "" };
+      this.showFilterModal = false;
+      this.currentPage = 1;
+    },
+    downloadAll() {
+      // Generar CSV
+      const headers = ["Nombre", "Dirección", "Teléfono", "Gerente"];
+      const rows = this.stores.map(s => [
+        `"${s.name || ''}"`, 
+        `"${s.address || ''}"`, 
+        `"${s.phone || ''}"`, 
+        `"${s.manager || ''}"`
+      ]);
+      
+      const csvContent = [
+        headers.join(","), 
+        ...rows.map(row => row.join(","))
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "tiendas_reporte.csv");
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
+
+    // --- PAGINACIÓN ---
+    nextPage() { if (this.currentPage < this.totalPages) this.currentPage++; },
+    prevPage() { if (this.currentPage > 1) this.currentPage--; }
+  },
+  mounted() {
+    this.load();
+    if (window.innerWidth < 900) this.sidebarOpen = false;
+    window.addEventListener("resize", () => {
         if (window.innerWidth >= 900) this.sidebarOpen = true;
-        });
-    }
-    };
+    });
+  }
+};
 </script>
 
 <style scoped>
-/* mantén tus estilos existentes (los que ya tenías) */
-#dashboard-wrapper {
-    display: flex;
-    width: 100%;
-    min-height: 100vh;
-    position: relative;
+/* ESTRUCTURA */
+#dashboard-wrapper { display: flex; width: 100%; min-height: 100vh; }
+.main-area { width: 100%; min-height: 100vh; background-color: #f4f5f7; display: flex; flex-direction: column; transition: margin-left 0.3s; }
+.main-area:not(.sidebar-collapsed) { margin-left: 260px; }
+.sidebar-collapsed .main-area { margin-left: 80px; }
+.content { padding: 20px; flex-grow: 1; }
+
+/* TARJETA */
+.card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+/* Estilo para agrupar botones a la derecha */
+.table-actions { display: flex; gap: 10px; }
+
+/* TABLA */
+.custom-table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 12px; color: #333; border-bottom: 1px solid #eee; font-weight: bold; }
+td { padding: 12px; border-bottom: 1px solid #f9f9f9; color: #555; vertical-align: middle; }
+.empty-state { text-align: center; color: #999; padding: 30px; }
+
+/* Celdas */
+.name-cell { display: flex; align-items: center; gap: 10px; }
+.avatar { width: 35px; height: 35px; background: #e0f2fe; color: #0284c7; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+.name-text { font-weight: 500; color: #2196f3; }
+
+/* BOTONES */
+.btn-blue { background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500;}
+.btn-blue:hover { background: #1976d2; }
+
+.btn-white { background: white; border: 1px solid #ddd; padding: 8px 16px; border-radius: 4px; cursor: pointer; color: #555; display: flex; align-items: center; gap: 8px; font-weight: 500;}
+.btn-white:hover { background: #f5f5f5; }
+
+.btn-red { background: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+.btn-red:hover { background: #d32f2f; }
+
+.action-btn { padding: 5px 10px; border: 1px solid #eee; background: white; border-radius: 4px; cursor: pointer; margin-right: 5px; font-size: 0.8rem; }
+.action-btn.edit { color: #2196f3; }
+.action-btn.delete { color: #f44336; }
+.action-btn:hover { background-color: #f5f5f5; }
+
+/* MODALES */
+.modal-backdrop {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;
 }
+.modal-card { background: white; width: 500px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); overflow: hidden; }
+.modal-card.small { width: 350px; text-align: center; }
+.modal-card.small .modal-body { text-align: left; } /* Para el form de filtro */
+.modal-card.small .modal-header { justify-content: space-between; }
 
-/* 2. ÁREA PRINCIPAL (Donde va el contenido) */
-.main-area {
-    width: 100%;
-    min-height: 100vh;
-    background-color: #f4f5f7;
-    transition: margin-left 0.3s ease-in-out;
-    display: flex;
-    flex-direction: column;
-}
+.modal-header { padding: 15px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+.modal-body { padding: 20px; }
+.modal-footer { padding: 15px 20px; background: #f9f9f9; display: flex; justify-content: flex-end; gap: 10px; }
+.close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999; }
+.warning-text { color: #f44336; font-size: 0.9rem; margin-top: 5px; }
 
-/* 3. LÓGICA DEL SIDEBAR (El truco para que no se encime) */
-/* Cuando la sidebar está ABIERTA (estado normal), empujamos el contenido 260px */
-.main-area:not(.sidebar-collapsed) {
-    margin-left: 260px; 
-}
+/* FORMULARIOS */
+.form-group { margin-bottom: 15px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 0.9rem; }
+.input-field { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+/* Select style fix */
+select.input-field { background-color: white; }
 
-/* Cuando la sidebar está CERRADA (chiquita), empujamos solo 80px */
-.sidebar-collapsed .main-area {
-    margin-left: 80px;
-}
-
-/* 4. TOPBAR */
-.topbar {
-    height: 64px;
-    background-color: #ffffff;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    border-bottom: 1px solid #e0e0e0;
-    position: sticky;
-    top: 0;
-    z-index: 99; /* Para que pase por encima del contenido al scrollear */
-}
-
-.topbar-left, .topbar-right {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-/* 5. ESTILOS DE CONTENIDO Y TARJETAS */
-.content {
-    padding: 20px;
-    flex-grow: 1; /* Ocupa el espacio restante */
-}
-
-.card {
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-
-.table-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-}
-
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 20px;
-}
-
-/* Utilidades de texto y botones */
-.menu-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
-.search-wrapper { position: relative; display: flex; align-items: center; }
-.search-input { padding: 8px 35px 8px 10px; border: 1px solid #ddd; border-radius: 4px; width: 250px; }
-.search-icon { position: absolute; right: 10px; color: #888; }
-.icon-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: #555; }
-
-/* Colores para estadísticas */
-.txt-blue { color: #2196f3; }
-.txt-orange { color: #ff9800; }
-.txt-purple { color: #9c27b0; }
-.txt-lightred { color: #f44336; }
-.stat-value { font-size: 1.5rem; font-weight: bold; margin: 5px 0; }
-.stat-sub { font-size: 0.8rem; color: #888; }
-.btn-blue { background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
-.btn-white { background: white; border: 1px solid #ddd; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-left: 8px; }
-
-/* Capa oscura para modales */
-#overlay {
-    position: fixed; top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.5); z-index: 1000;
-}
-.overlay-hidden { display: none; }
+/* PAGINACIÓN */
+.pagination-wrapper { margin-top: 15px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+.page-info { font-size: 0.9rem; color: #666; }
+.page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>
