@@ -12,31 +12,26 @@
             />
 
             <div class="content">
-                <!-- Overall Inventory (kept same as before) -->
                 <section class="card stats-card">
-                <h3 class="card-title">Overall Inventory</h3>
-                <div class="stats-grid">
-                    <div class="stat">
-                    <h6 class="stat-title txt-blue">Categories</h6>
-                    <div class="stat-value">{{ stats.categories }}</div>
-                    <div class="stat-sub">Last 7 days</div>
+                    <h3 class="card-title">Overall Inventory</h3>
+                    <div class="stats-grid">
+                        <div class="stat">
+                        <h6 class="stat-title txt-blue">Categories</h6>
+                        <div class="stat-value">{{ stats.categories }}</div>
+                        </div>
+                        <div class="stat">
+                        <h6 class="stat-title txt-orange">Total Products</h6>
+                        <div class="stat-value">{{ stats.totalUnits }}</div>
+                        </div>
+                        <div class="stat">
+                        <h6 class="stat-title txt-lightred">Ordered</h6>
+                        <div class="stat-value">{{ stats.ordered }}</div>
+                        </div>
+                        <div class="stat">
+                        <h6 class="stat-title txt-lightred">Not in stock </h6>
+                        <div class="stat-value">{{ stats.not_in_stock }}</div>
+                        </div>
                     </div>
-                    <div class="stat">
-                    <h6 class="stat-title txt-orange">Total Products</h6>
-                    <div class="stat-value">{{ stats.totalUnits }}</div>
-                    <div class="stat-sub">Revenue ₹{{ stats.revenue }}</div>
-                    </div>
-                    <div class="stat">
-                    <h6 class="stat-title txt-purple">Top Selling</h6>
-                    <div class="stat-value">{{ stats.topSelling }}</div>
-                    <div class="stat-sub">Cost ₹{{ stats.cost }}</div>
-                    </div>
-                    <div class="stat">
-                    <h6 class="stat-title txt-lightred">Low Stocks</h6>
-                    <div class="stat-value">{{ stats.ordered }}</div>
-                    <div class="stat-sub">Not in stock {{ stats.not_in_stock }}</div>
-                    </div>
-                </div>
                 </section>
 
                 <!-- Products -->
