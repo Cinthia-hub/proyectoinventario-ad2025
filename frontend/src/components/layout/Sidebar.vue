@@ -1,8 +1,12 @@
 <template>
   <aside :class="['app-sidebar', { collapsed }]" role="navigation" aria-label="Main navigation">
     <div class="sidebar-top">
-      <img class="sidebar-logo" src="../../assets/logo.png" alt="Mercadito Logo" />
-      <span class="brand">Mercadito</span>
+      <img 
+        class="sidebar-logo" 
+        :src="settings.logoUrl || defaultLogo" 
+        alt="Store Logo" 
+      />
+      <span class="brand">{{ settings.name || 'Mercadito' }}</span>
     </div>
 
     <nav class="sidebar-menu" aria-label="Primary">
@@ -61,7 +65,7 @@
     <div class="sidebar-bottom" aria-label="Secondary">
       <ul>
         <li :class="['menu-item', { active: isActive('/settings') }]">
-          <a href="#" class="menu-link" @click.prevent="navigateTo('/settings')">
+          <a href="#" class="menu-link" @click.prevent="navigateTo('/settings', 'manage')">
             <i class="fa-solid fa-gear"></i>
             <span>Settings</span>
           </a>
@@ -80,6 +84,11 @@
 <script setup>
 import { useAuthStore } from '../../store/auth.store';
 import { useRouter, useRoute } from 'vue-router';
+// 3. CAMBIO: Importamos ref y onMounted
+import { ref, onMounted } from 'vue';
+// 4. CAMBIO: Importamos la API y el logo por defecto
+import * as api from '../../api/settings.api.js';
+import defaultLogoImg from '../../assets/logo.png';
 
 const props = defineProps({
   collapsed: {
@@ -94,22 +103,38 @@ const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
-// navega programáticamente y emite el evento 'navigate' para que el padre (si lo escucha) pueda reaccionar
+// 5. CAMBIO: Estado reactivo para la configuración
+const defaultLogo = defaultLogoImg;
+const settings = ref({
+  name: 'Mercadito',
+  logoUrl: ''
+});
+
+// 6. CAMBIO: Cargar configuración al montar el Sidebar
+onMounted(async () => {
+  try {
+    const data = await api.getSettings();
+    if (data) {
+      // Si hay datos en Firebase, actualizamos el estado
+      if (data.name) settings.value.name = data.name;
+      if (data.logoUrl) settings.value.logoUrl = data.logoUrl;
+    }
+  } catch (error) {
+    console.error("Error cargando branding en Sidebar:", error);
+  }
+});
+
 const navigateTo = (path, key = null) => {
   if (key) emit('navigate', key);
   router.push(path).catch(() => {});
 };
 
-// --- FUNCIÓN PARA SALIR ---
 const handleLogout = () => {
-  // llama a la acción de la store (debe existir logout en authStore)
   authStore.logout();
   emit('logout');
-  // redirige a la raíz (login)
   router.push('/').catch(() => {});
 };
 
-// comprueba si la ruta actual coincide (o es subruta) del path pasado
 const isActive = (path) => {
   const current = route.path || '';
   if (!path) return false;
@@ -152,7 +177,7 @@ const isActive = (path) => {
 .sidebar-logo {
   width: 36px;
   height: 36px;
-  object-fit: contain;
+  object-fit: cover; /* Cambié contain por cover para avatares redondos */
 }
 
 .brand {
@@ -207,7 +232,6 @@ const isActive = (path) => {
   color: #1471ff;
 }
 
-/* ---- Puntos en la sección inferior: ahora posicionados absolutamente ---- */
 .sidebar-bottom {
   margin-top: 10px;
   padding-top: 12px;
@@ -219,7 +243,7 @@ const isActive = (path) => {
   padding: 0;
   margin: 0;
 }
-/* mobile: ocultar sidebar (si gestionas colapso con JS, opcional) */
+
 @media (max-width: 800px) {
   .app-sidebar { display: none; }
 }
