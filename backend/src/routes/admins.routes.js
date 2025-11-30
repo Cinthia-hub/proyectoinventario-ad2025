@@ -1,6 +1,7 @@
 import express from 'express';
 import { db } from '../config/db.js';
 import bcrypt from 'bcryptjs';
+import authenticate from '../middleware/authenticate.js';
 
 const router = express.Router();
 const SALT_ROUNDS = 10;
@@ -11,7 +12,7 @@ function withoutPassword(obj) {
   return copy;
 }
 
-// GET /api/users
+// GET /api/users  (Se permite listar a quien esté autenticado o público; si quieres protegerlo, añade authenticate)
 router.get('/', async (req, res) => {
   try {
     const snapshot = await db.collection('users').orderBy('nombre').get();
@@ -23,16 +24,18 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/users
-router.post('/', async (req, res) => {
+// POST /api/users  (Crear usuario: protegido para admins)
+router.post('/', authenticate, async (req, res) => {
   try {
-    const payload = req.body || {};
-    console.log('POST /api/users payload (antes de hash):', payload);
+    if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'rol' && req.user.role !== 'admin')) {
+      // El check anterior trata de cubrir casos pero lo ideal es req.user.role === 'admin'
+      if (req.user.role !== 'admin') return res.status(403).json({ error: 'Acceso denegado' });
+    }
 
+    const payload = req.body || {};
     if (payload.password) {
       const hashed = await bcrypt.hash(String(payload.password), SALT_ROUNDS);
       payload.password = hashed;
-      console.log('Password hasheada correctamente.');
     }
 
     const ref = await db.collection('users').add(payload);
@@ -45,21 +48,23 @@ router.post('/', async (req, res) => {
   }
 });
 
-// PUT /api/users/:id
-router.put('/:id', async (req, res) => {
+// PUT /api/users/:id  (Actualizar usuario: protegido para admins)
+router.put('/:id', authenticate, async (req, res) => {
   try {
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Acceso denegado' });
+    }
+
     const { id } = req.params;
     const docRef = db.collection('users').doc(id);
     const snapshot = await docRef.get();
     if (!snapshot.exists) return res.status(404).json({ error: 'Usuario no encontrado' });
 
     const updatePayload = { ...(req.body || {}) };
-    console.log(`PUT /api/users/${id} payload (antes de hash):`, updatePayload);
 
     if (updatePayload.password) {
       const hashed = await bcrypt.hash(String(updatePayload.password), SALT_ROUNDS);
       updatePayload.password = hashed;
-      console.log('Password actualizada y hasheada.');
     } else {
       delete updatePayload.password;
     }
@@ -73,10 +78,21 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE /api/users/:id
-router.delete('/:id', async (req, res) => {
+// DELETE /api/users/:id  (Prohibir autoeliminación)
+router.delete('/:id', authenticate, async (req, res) => {
   try {
+    // Solo admins pueden borrar
+    if (!req.user || req.user.role !== 'admin') {
+      return res.status(403).json({ error: 'Acceso denegado' });
+    }
+
     const { id } = req.params;
+
+    // Evitar que un admin se elimine a sí mismo
+    if (String(req.user.id) === String(id)) {
+      return res.status(403).json({ error: 'Un administrador no puede eliminar su propia cuenta.' });
+    }
+
     const docRef = db.collection('users').doc(id);
     const snapshot = await docRef.get();
     if (!snapshot.exists) return res.status(404).json({ error: 'Usuario no encontrado' });

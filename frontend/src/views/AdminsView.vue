@@ -15,9 +15,10 @@
           <div class="table-header">
             <h3 v-if="!viewingUser">Administradores</h3>
             <div v-if="!viewingUser" class="table-actions">
-              <button class="btn-blue" @click="openAdd">Nuevo admin</button>
-              <button class="btn-white" @click="openFilterModal"><i class="fas fa-filter"></i> Filters</button>
-              <button class="btn-white" @click="downloadAll">Download all</button>
+              <!-- Solo mostrar acciones si es admin -->
+              <button v-if="isAdmin" class="btn-blue" @click="openAdd">Nuevo admin</button>
+              <button v-if="isAdmin" class="btn-white" @click="openFilterModal"><i class="fas fa-filter"></i> Filters</button>
+              <button v-if="isAdmin" class="btn-white" @click="downloadAll">Download all</button>
             </div>
           </div>
 
@@ -33,7 +34,6 @@
             @delete="requestDelete"
           />
 
-          <!-- Pasamos la prop 'user' (no 'admin') -->
           <admin-view
             v-if="viewingUser"
             :user="viewingUser"
@@ -44,7 +44,6 @@
         </section>
       </div>
 
-      <!-- Pasamos la prop 'user' (no 'admin') -->
       <admin-form
         v-if="showForm"
         :user="editingUser"
@@ -83,6 +82,7 @@ import AdminForm from "../components/admins/AdminForm.vue";
 import FilterModal from "../components/admins/FilterModal.vue";
 import ConfirmModal from "../components/layout/ConfirmModal.vue";
 import * as api from "../api/admins.api.js";
+import { useAuthStore } from '../store/auth.store';
 
 export default {
   name: "AdminsView",
@@ -109,7 +109,8 @@ export default {
       confirmModalVisible: false,
       userToDelete: null,
       confirmMessage: "",
-      sidebarOpen: true
+      sidebarOpen: true,
+      authStore: useAuthStore() // <-- store
     };
   },
   computed: {
@@ -120,6 +121,11 @@ export default {
     pagedUsers() {
       const start = (this.currentPage - 1) * this.perPage;
       return this.filtered.slice(start, start + this.perPage);
+    },
+    // Helper para saber si el usuario es admin (soporta 'role' o 'rol')
+    isAdmin() {
+      const u = this.authStore.user;
+      return u && (u.role === 'admin' || u.rol === 'admin');
     }
   },
   methods: {
@@ -220,7 +226,7 @@ export default {
         await this.load();
       } catch (err) {
         console.error("Delete failed", err);
-        alert("Failed to delete admin. See console for details.");
+        alert(err?.message || err?.bodyText || 'Failed to delete admin. See console for details.');
       } finally {
         this.confirmModalVisible = false;
         this.overlayVisible = false;
@@ -255,7 +261,7 @@ export default {
     downloadAll() {
       const rows = [
         ["Nombre","Username","Rol","Teléfono","Email","Dirección","PhotoURL"],
-        ...this.users.map(u => [u.nombre, u.username||'', u.rol||'', u.telefono||'', u.email||'', u.direccion||'', u.photo_url||''])
+        ...this.users.map(u => [u.nombre, u.username||'', u.rol||u.role||'', u.telefono||'', u.email||'', u.direccion||'', u.photo_url||''])
       ];
       const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
       const blob = new Blob([csv], { type: "text/csv" });
@@ -264,6 +270,12 @@ export default {
     }
   },
   mounted() {
+    // Redirigir si no es admin (evita que empleados vean la vista even si navegan manualmente)
+    if (!this.isAdmin) {
+      this.$router.push('/dashboard').catch(()=>{});
+      return;
+    }
+
     this.load();
     if (window.innerWidth < 900) this.sidebarOpen = false;
     window.addEventListener("resize", () => { if (window.innerWidth >= 900) this.sidebarOpen = true; });
@@ -272,7 +284,7 @@ export default {
 </script>
 
 <style scoped>
-/* mismos estilos que antes */
+/* estilos sin cambios */
 #dashboard-wrapper { display: flex; width: 100%; min-height: 100vh; position: relative; }
 .main-area { width: 100%; min-height: 100vh; background-color: #f4f5f7; transition: margin-left 0.3s ease-in-out; display: flex; flex-direction: column; }
 .main-area:not(.sidebar-collapsed) { margin-left: 260px; }

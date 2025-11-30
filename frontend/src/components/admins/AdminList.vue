@@ -21,13 +21,29 @@
             </div>
           </td>
           <td>{{ u.username || '-' }}</td>
-          <td>{{ u.rol || '-' }}</td>
+          <td>{{ u.rol || u.role || '-' }}</td>
           <td>{{ u.telefono || '-' }}</td>
           <td>{{ u.email || '-' }}</td>
           <td>{{ u.direccion || '-' }}</td>
           <td class="actions-cell">
-            <button class="action-edit" @click="$emit('edit', u)" title="Editar admin">Editar</button>
-            <button class="action-delete" @click="$emit('delete', u)" title="Eliminar admin">Eliminar</button>
+            <!-- Mostrar Edit SOLO si el usuario logueado es admin -->
+            <button
+              v-if="authStore.user && (authStore.user.role === 'admin' || authStore.user.rol === 'admin')"
+              class="action-edit"
+              @click="$emit('edit', u)"
+              title="Editar admin"
+            >Editar</button>
+
+            <!-- Mostrar Delete SOLO si el usuario logueado es admin AND NO ES EL MISMO usuario -->
+            <button
+              v-if="authStore.user && (authStore.user.role === 'admin' || authStore.user.rol === 'admin') && String(u.id) !== String(authStore.user.id)"
+              class="action-delete"
+              @click="$emit('delete', u)"
+              title="Eliminar admin"
+            >Eliminar</button>
+
+            <!-- Si es el propio usuario, mostramos etiqueta (sin botón) -->
+            <span v-else-if="String(u.id) === String(authStore.user?.id)" class="self-label">(Es tu cuenta)</span>
           </td>
         </tr>
 
@@ -46,6 +62,8 @@
 </template>
 
 <script>
+import { useAuthStore } from '../../store/auth.store';
+
 export default {
   props: {
     users: { type: Array, default: () => [] },
@@ -58,7 +76,9 @@ export default {
         "data:image/svg+xml;utf8," +
         encodeURIComponent(
           "<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='100%' height='100%' fill='#f4f4f4'/><text x='50%' y='50%' dy='.35em' text-anchor='middle' fill='#9c9c9c' font-family='Arial' font-size='10'>No</text></svg>"
-        )
+        ),
+      // Instanciamos el store para poder usar authStore en el template
+      authStore: useAuthStore()
     };
   },
   computed: {
@@ -77,6 +97,7 @@ export default {
 </script>
 
 <style scoped>
+/* estilos sin cambios */
 .products { width:100%; border-collapse:collapse; background:white; border-radius:6px; overflow:hidden; }
 .products thead { background:#fafafa; border-bottom:1px solid #eee; }
 .products th, .products td { text-align:left; padding:12px 16px; font-size:14px; border-bottom:1px solid #f1f1f1; }
@@ -92,7 +113,7 @@ export default {
 .no-results { padding:24px; text-align:center; color:#888; }
 .product-link { color:#1f7bff; text-decoration:none; font-weight:500; }
 .product-link:hover { color:#1766d1; }
-
 .name-cell { display:flex; align-items:center; gap:12px; }
 .thumb { width:40px; height:40px; object-fit:cover; border-radius:6px; border:1px solid #eee; }
+.self-label { color:#888; font-size:13px; margin-left:8px; }
 </style>
