@@ -16,7 +16,19 @@
         <div class="welcome-header">
           <div>
             <h1>¡Hola, {{ getUserName }}! 👋</h1>
-            <p class="subtitle">Aquí está el resumen de <strong>Mercadito</strong> para hoy.</p>
+            <p class="subtitle">
+              <template v-if="settings">
+                Aquí está el resumen de <strong>{{ settings.name || 'Mercadito' }}</strong> — {{ settings.description || '' }}
+              </template>
+              <template v-else>
+                Aquí está el resumen de <strong>Mercadito</strong> para hoy.
+              </template>
+            </p>
+            <p class="muted-contact" v-if="settings">
+              <small v-if="settings.email"><i class="fa-solid fa-envelope"></i> {{ settings.email }}</small>
+              <small v-if="settings.phone" style="margin-left:10px;"><i class="fa-solid fa-phone"></i> {{ settings.phone }}</small>
+              <small v-if="settings.address" style="margin-left:10px;"><i class="fa-solid fa-location-dot"></i> {{ settings.address }}</small>
+            </p>
           </div>
           <div class="date-pill">
             <i class="fa-regular fa-calendar"></i> {{ currentDate }}
@@ -31,97 +43,54 @@
               <small>Inventario</small>
             </div>
           </button>
-          <button class="action-card green">
+          <button class="action-card green" @click="$router.push('/stores')">
             <div class="icon-circle"><i class="fa-solid fa-cash-register"></i></div>
             <div class="action-text">
-              <span>Nueva Venta</span>
-              <small>Terminal POS</small>
+              <span>Nueva Tienda</span>
+              <small>Compras</small>
             </div>
           </button>
           <button class="action-card orange" @click="$router.push('/suppliers')">
             <div class="icon-circle"><i class="fa-solid fa-truck-ramp-box"></i></div>
             <div class="action-text">
-              <span>Nuevo Proveedor</span>
-              <small>Gestión</small>
+              <span>Agregar Proveedor</span>
+              <small>Suministro</small>
             </div>
           </button>
-          <button class="action-card purple">
+          <button class="action-card purple" @click="$router.push('/users')">
             <div class="icon-circle"><i class="fa-solid fa-file-invoice-dollar"></i></div>
             <div class="action-text">
-              <span>Ver Reportes</span>
-              <small>Finanzas</small>
+              <span>Nuevo Administrador</span>
+              <small>Gestión</small>
             </div>
           </button>
         </div>
 
-        <section class="section-container">
-            <div class="section-header">
-                <h3><i class="fa-solid fa-store"></i> Tiendas y Proveedores</h3>
-                <button class="btn-link" @click="$router.push('/suppliers')">
-                    Ver todos <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
-          <div class="suppliers-grid">
-            
-            <div class="store-card">
-                <div class="store-cover" style="background-image: url('https://thelogisticsworld.com/wp-content/uploads/2023/02/nueva-tienda-de-bodega-aurrera-1.jpg');"></div>
-                <div class="store-body">
-                <img src="https://i.pravatar.cc/150?u=Consuelo" class="store-avatar" alt="Consuelo">
-                <div class="store-info">
-                    <h4>Bodega Aurrera</h4>
-                    <p class="contact-name"><i class="fa-solid fa-user-tag"></i> Consuelo Dubal</p>
-                    <div class="store-tags">
-                    <span class="tag">Abarrotes</span>
-                    <span class="tag">Despensa</span>
-                    </div>
-                </div>
-                </div>
-            </div>
+        <section class="section-container" v-if="firstOrders.length">
+          <div class="section-header">
+            <h3><i class="fa-solid fa-file-invoice"></i> Últimas órdenes</h3>
+            <button class="btn-link" @click="$router.push('/orders')">Ver todas <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
 
-            <div class="store-card">
-                <div class="store-cover" style="background-image: url('https://dnclcgcvl4f14.cloudfront.net/siila-cm/prd/1280w/7910-1686932784704.jpg');"></div>
-                <div class="store-body">
-                <img src="https://i.pravatar.cc/150?u=Paco" class="store-avatar" alt="Paco">
-                <div class="store-info">
-                    <h4>La Comer</h4>
-                    <p class="contact-name"><i class="fa-solid fa-user-tag"></i> Don Paco Hdez</p>
-                    <div class="store-tags">
-                    <span class="tag">Frescos</span>
-                    <span class="tag">Gourmet</span>
-                    </div>
+          <div class="orders-grid">
+            <div v-for="o in firstOrders" :key="o.id || o.folio" class="order-card" @click="openOrder(o)" style="cursor:pointer;">
+              <div class="order-thumb">
+                <img :src="o.store_image || placeholderAvatar" @error="(e)=>e.target.src = placeholderAvatar" />
+              </div>
+              <div class="order-details">
+                <div class="order-info">
+                  <div class="order-middle">
+                    <div class="line store-line">{{ o.store_name || o.store?.name || '-' }}</div>
+                    <div class="line">{{ o.supplier_name || '-' }}</div>
+                  </div>
+                  <div class="order-bottom">
+                    <span class="badge small">{{ o.delivery_date || '-' }}</span>
+                  </div>
                 </div>
+                <div class="order-admin-avatar">
+                  <img :src="o.supplier_image || placeholderAvatar" @error="(e)=>e.target.src = placeholderAvatar" />
                 </div>
-            </div>
-
-            <div class="store-card">
-                <div class="store-cover" style="background-image: url('https://i0.wp.com/estadoluz.com/wp-content/uploads/2024/07/Banner-Estado-Luz-1200-x-700-px-2024-07-04T160746.149.png?fit=1200%2C700&ssl=1');">
-                <span class="cover-title">EL REMATE</span>
-                </div>
-                <div class="store-body">
-                <img src="https://i.pravatar.cc/150?u=Miguel" class="store-avatar" alt="Miguel">
-                <div class="store-info">
-                    <h4>El Remate</h4>
-                    <p class="contact-name"><i class="fa-solid fa-user-tag"></i> Miguel</p>
-                    <div class="store-tags">
-                    <span class="tag">Ofertas</span>
-                    <span class="tag">Varios</span>
-                    </div>
-                </div>
-                </div>
-            </div>
-
-            <div class="store-card">
-                <div class="store-cover" style="background-image: url('https://retailers.mx/revista/wp-content/uploads/2022/06/Sorian-Hiper-Tapachula-scaled.jpg');"></div>
-                <div class="store-body">
-                <img src="https://i.pravatar.cc/150?u=Chema" class="store-avatar" alt="Chema">
-                <div class="store-info">
-                    <h4>Soriana</h4>
-                    <p class="contact-name"><i class="fa-solid fa-user-tag"></i> Doña Chema</p>
-                    <div class="store-tags">
-                    <span class="tag">General</span>
-                    </div>
-                </div>
-                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -187,9 +156,9 @@
                   </div>
 
                   <div class="social-buttons">
-                     <button class="social-btn fb"><i class="fa-brands fa-facebook-f"></i></button>
-                     <button class="social-btn ig"><i class="fa-brands fa-instagram"></i></button>
-                     <button class="social-btn wa"><i class="fa-brands fa-whatsapp"></i></button>
+                     <button class="social-btn fb"><a href="https://www.facebook.com/WalmartMexico/?locale=es_LA"><i class="fa-brands fa-facebook-f"></i></a></button>
+                     <button class="social-btn ig"><a href="https://www.instagram.com/walmartmexico/"><i class="fa-brands fa-instagram"></i></a></button>
+                     <button class="social-btn wa"><a href="https://www.threads.com/@walmartmexico?xmt=AQF0Ck_x9wA4L3bEOXpwRWF95lsnAFg6MGzY-Khye5lP2fk"><i class="fa-brands fa-whatsapp"></i></a></button>
                   </div>
                </div>
             </div>
@@ -211,7 +180,10 @@ import Sidebar from "../components/layout/Sidebar.vue";
 import Navbar from "../components/layout/Navbar.vue";
 import ProductForm from "../components/products/ProductForm.vue";
 import * as api from "../api/product.api.js";
+import * as ordersApi from "../api/orders.api.js";
+import * as storesApi from "../api/stores.api.js";
 import { useAuthStore } from '../store/auth.store';
+import StoreTile from "../components/store/StoreTile.vue";
 
 // Chart.js
 import { Bar } from 'vue-chartjs'
@@ -220,7 +192,7 @@ ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
 export default {
   name: "DashboardView",
-  components: { Sidebar, Navbar, ProductForm, Bar },
+  components: { Sidebar, Navbar, ProductForm, Bar, StoreTile },
   
   setup() {
     const authStore = useAuthStore();
@@ -231,7 +203,7 @@ export default {
     return {
       products: [],
       sidebarOpen: true,
-      
+
       // Modal
       showForm: false,
       editingProduct: null,
@@ -239,19 +211,36 @@ export default {
 
       // Stats
       stats: { categories: 0, totalUnits: 0, revenue: 0, topSelling: 0, cost: 0, ordered: 0, not_in_stock: 0 },
-      
+
       // Chart
       selectedProductId: null,
       chartData: { labels: [], datasets: [] },
       chartOptions: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } },
-      
-      currentDate: new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
+      currentDate: new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }),
+
+      // orders (+ derived lists)
+      orders: [],
+      derivedStores: [],
+      derivedEmployees: [],
+
+      // placeholder avatar
+      placeholderAvatar:
+        "data:image/svg+xml;utf8," +
+        encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><rect width='100%' height='100%' fill='#f4f4f4'/><text x='50%' y='50%' dy='.35em' text-anchor='middle' fill='#9c9c9c' font-family='Arial' font-size='14'>No Image</text></svg>"),
+
+      // settings doc from firebase (single record)
+      settings: null
     };
   },
   
   computed: {
     getUserName() {
       return this.authStore.user?.nombre || this.authStore.user?.username || 'Usuario';
+    },
+    // first 4 orders (if exist)
+    firstOrders() {
+      return (this.orders || []).slice(0, 4);
     }
   },
 
@@ -260,9 +249,84 @@ export default {
     
     async load() {
       try {
+        // productos
         this.products = await api.getProducts();
+
+        // 1) settings (single doc) — ajusta la ruta si tu backend la expone distinto
+        try {
+          const sRes = await fetch('/api/settings');
+          if (sRes.ok) {
+            const sd = await sRes.json();
+            this.settings = Array.isArray(sd) ? (sd[0] || null) : (sd || null);
+          } else {
+            console.warn('No se pudo obtener settings:', sRes.status);
+            this.settings = null;
+          }
+        } catch (err) {
+          console.warn('Error al pedir settings:', err);
+          this.settings = null;
+        }
+
+        // 2) órdenes
+        try {
+          const rawOrders = await ordersApi.getOrders();
+          // normalizamos nombres de campos comunes para evitar undefined
+          this.orders = (rawOrders || []).map(o => ({
+            ...o,
+            store_image: o.store_image || o.store_photo || (o.store && (o.store.photo_url || o.store.url)) || o.photo_url || o.store_photo_url || '',
+            admin_photo: o.admin_photo || o.admin_image || (o.admin && (o.admin.photo_url || o.admin.url)) || '',
+            // opcional: normalizar nombres para mostrar
+            store_name: o.store_name || (o.store && (o.store.name || o.store.nombre)) || '',
+            admin_name: o.admin_name || (o.admin && (o.admin.nombre || o.admin.username)) || ''
+          }));
+        } catch (err) {
+          console.warn('No se pudo cargar orders:', err);
+          this.orders = [];
+        }
+
+        // 3) derive stores/admins with images (unique)
+        const storeMap = new Map();
+        const adminMap = new Map();
+
+        (this.orders || []).forEach(o => {
+          const storeId = o.storeId || o.store_id || (o.store && o.store.id) || o.store?.id;
+          const storePhoto = o.store_image;
+          const storeName = o.store_name || o.store?.name || o.store?.nombre;
+
+          if (storeId && storePhoto) {
+            if (!storeMap.has(storeId)) {
+              storeMap.set(storeId, {
+                id: storeId,
+                name: storeName || 'Tienda',
+                photo_url: storePhoto,
+                address: o.store_address || (o.store && (o.store.address || o.store.direccion)) || ''
+              });
+            }
+          }
+
+          const adminId = o.adminId || o.admin_id || (o.admin && o.admin.id) || o.admin?.id;
+          const adminPhoto = o.admin_photo;
+          const adminName = o.admin_name || o.admin?.nombre || o.admin?.username;
+
+          if (adminId && adminPhoto) {
+            if (!adminMap.has(adminId)) {
+              adminMap.set(adminId, {
+                id: adminId,
+                name: adminName || 'Empleado',
+                photo_url: adminPhoto
+              });
+            }
+          }
+        });
+
+        this.derivedStores = Array.from(storeMap.values());
+        this.derivedEmployees = Array.from(adminMap.values());
+
+        // recompute stats (tu función existente)
         this.computeStats();
-      } catch (e) { console.error("Error cargando productos", e); }
+      } catch (e) {
+        console.error('Error cargando dashboard:', e);
+      }
     },
 
     computeStats() {
@@ -306,12 +370,28 @@ export default {
     openAdd() { this.editingProduct = null; this.showForm = true; this.overlayVisible = true; },
     closeForm() { this.showForm = false; this.overlayVisible = false; },
     async onSaved() { await this.load(); this.closeForm(); },
-    overlayClicked() { this.closeForm(); }
+    overlayClicked() { this.closeForm(); },
+
+    goToStore(id) {
+      // navigate to stores view with query param so StoresView can open that store if desired
+      if (!id) return;
+      this.$router.push({ path: '/stores', query: { id } }).catch(()=>{});
+    },
+
+    goToAdmin(id) {
+      if (!id) return;
+      // navigate to users/admins page (or adapt to your routing)
+      this.$router.push({ path: '/users', query: { id } }).catch(()=>{});
+    }
   },
   mounted() {
     this.load();
     if (window.innerWidth < 900) this.sidebarOpen = false;
-  }
+  },
+  openOrder(order) {
+    if (!order) return;
+    this.$router.push({ path: '/orders', query: { id: order.id || order.folio } }).catch(()=>{});
+  },
 };
 </script>
 
@@ -321,7 +401,7 @@ export default {
 .main-area { width: 100%; min-height: 100vh; background-color: #f8fafc; transition: margin-left 0.22s ease; display: flex; flex-direction: column; }
 .main-area { margin-left: 200px; }
 .main-area.sidebar-collapsed { margin-left: 0 !important; }
-.content { padding: 15px 25px; flex-grow: 1; max-width: 100%; /* <--- ESTO ESTÁ BIEN */box-sizing: border-box; display: flex; flex-direction: column;gap: 15px;}
+.content { padding: 15px 25px; flex-grow: 1; max-width: 100%; box-sizing: border-box; display: flex; flex-direction: column;gap: 15px;}
 /* --- HEADER BIENVENIDA --- */
 .welcome-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 35px; border-bottom: 1px solid #e2e8f0; padding-bottom: 20px; }
 .welcome-header h1 { font-size: 1.8rem; color: #1e293b; margin: 0 0 5px 0; font-weight: 700; }
@@ -350,8 +430,6 @@ export default {
 .suppliers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px; }
 .store-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: transform 0.2s; border: 1px solid #f1f5f9; display: flex; flex-direction: column; }
 .store-card:hover { transform: translateY(-5px); box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.1); }
-
-/* Agrega background-size: cover para que la foto llene todo el espacio sin deformarse */
 .store-cover { height: 100px; background-position: center; background-repeat: no-repeat; background-size: cover; position: relative;}
 .cover-title { position: absolute; bottom: 10px; left: 10px; color: white; font-weight: 900; font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
 
@@ -363,130 +441,33 @@ export default {
 .store-tags { display: flex; gap: 8px; flex-wrap: wrap; }
 .tag { background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
 
-/* --- GRID INFERIOR (Alineación Perfecta) --- */
-.dashboard-grid-bottom { 
-  display: grid; 
-  grid-template-columns: 2.2fr 1fr; /* Le damos un poco más de espacio a la gráfica */
-  gap: 20px; 
-  align-items: stretch; /* <--- TRUCO: Esto obliga a que ambas columnas midan lo mismo */
-  margin-bottom: 20px;
-}
+/* --- GRID INFERIOR --- */
+.dashboard-grid-bottom { display: grid; grid-template-columns: 2.2fr 1fr; gap: 20px; align-items: stretch; margin-bottom: 20px; }
+@media (max-width: 1100px) { .dashboard-grid-bottom { grid-template-columns: 1fr; } }
+.left-col { display: flex; flex-direction: column; gap: 20px; }
+.right-col { display: flex; flex-direction: column; height: 100%; }
 
-@media (max-width: 1100px) { 
-  .dashboard-grid-bottom { grid-template-columns: 1fr; } 
-}
-
-/* Columna Izquierda (Stats + Chart) */
-.left-col { 
-  display: flex; 
-  flex-direction: column; 
-  gap: 20px; 
-}
-
-/* Columna Derecha (Tienda) */
-.right-col { 
-  display: flex; 
-  flex-direction: column; 
-  height: 100%; /* Para que llene el hueco */
-}
-
-/* 1. Ajuste de altura de la Gráfica (Más chaparrita) */
-/* Antes estaba en 220px o 300px */
-.chart-container { 
-  height: 180px; /* <--- REDUCIR A ESTE VALOR */
-  width: 100%; 
-  position: relative;
-}
-
-.no-chart-state { 
-  height: 180px; /* <--- IGUALAR AQUI */
-  display: flex; 
-  flex-direction: column; 
-  align-items: center; 
-  justify-content: center; 
-  color: #94a3b8; 
-  background: #f8fafc; 
-  border-radius: 12px; 
-  border: 2px dashed #e2e8f0; 
-}
+/* Chart adjustments */
+.chart-container { height: 180px; width: 100%; position: relative; }
+.no-chart-state { height: 180px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; background: #f8fafc; border-radius: 12px; border: 2px dashed #e2e8f0; }
 .no-chart-state i { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.5; }
 
-/* 2. Ajuste de la Tarjeta de Tienda (Para que se estire) */
-.store-profile-card { 
-  background: white; 
-  border-radius: 16px; 
-  overflow: hidden; 
-  border: 1px solid #e2e8f0; 
-  text-align: center; 
-  padding-bottom: 20px; 
-  
-  /* ESTO HACE QUE SE ESTIRE PARA ALCANZAR A LA GRÁFICA */
-  height: 100%; 
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between; 
-}
-
-/* Estilos internos de la tienda (igual que antes) */
-.store-header-bg { 
-  height: 50px; /* Antes 70px */
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6); 
-  flex-shrink: 0; 
-}
-/* Reducimos el círculo del logo */
-.store-logo-wrapper { 
-  width: 60px;  /* Antes 80px */
-  height: 60px; /* Antes 80px */
-  background: white; 
-  border-radius: 50%; 
-  margin: -30px auto 5px auto; /* Ajustamos el margen negativo */
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  font-size: 1.8rem; /* Icono más chico */
-  color: #3b82f6; 
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
-}
-/* Ajustamos márgenes de textos */
-.store-info-center h2 { 
-  margin: 0 0 2px 0; 
-  font-size: 1.1rem; /* Texto un poco más chico */
-  color: #1e293b; 
-}
-.status-badge { 
-  font-size: 0.75rem; 
-  padding: 2px 10px; 
-  border-radius: 20px; 
-  font-weight: 600; 
-  margin-bottom: 10px; /* Menos espacio abajo */
-  display: inline-block; 
-  background: #dcfce7; 
-  color: #166534; 
-}
-.store-details-list { text-align: left; padding: 0 25px; margin-bottom: auto; /* Empuja los botones abajo */ }
-/* Reducimos espacio entre los datos de contacto */
-.store-details-list p { 
-  margin: 6px 0; /* Antes 12px */
-  color: #64748b; 
-  font-size: 0.85rem; 
-  display: flex; 
-  align-items: center; 
-  gap: 10px; 
-}
+/* Store profile card adjustments */
+.store-profile-card { background: white; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; text-align: center; padding-bottom: 20px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+.store-header-bg { height: 50px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); flex-shrink: 0; }
+.store-logo-wrapper { width: 60px; height: 60px; background: white; border-radius: 50%; margin: -30px auto 5px auto; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: #3b82f6; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+.store-info-center h2 { margin: 0 0 2px 0; font-size: 1.1rem; color: #1e293b; }
+.status-badge { font-size: 0.75rem; padding: 2px 10px; border-radius: 20px; font-weight: 600; margin-bottom: 10px; display: inline-block; background: #dcfce7; color: #166534; }
+.store-details-list { text-align: left; padding: 0 25px; margin-bottom: auto; }
+.store-details-list p { margin: 6px 0; color: #64748b; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
 .store-details-list i { color: #94a3b8; width: 20px; text-align: center; font-size: 1.1rem; }
 
-/* Botones sociales un poco más compactos */
-.social-buttons { 
-  display: flex; 
-  justify-content: center; 
-  gap: 10px; 
-  margin-top: 15px; /* Menos margen arriba */
-}
+/* Social buttons */
+.social-buttons { display: flex; justify-content: center; gap: 10px; margin-top: 15px; }
 .social-btn { width: 40px; height: 40px; border-radius: 50%; border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; transition: transform 0.2s; }
 .social-btn:hover { transform: scale(1.1); }
 .fb { background: #1877f2; } .ig { background: #e1306c; } .wa { background: #25d366; }
 
-/* Estilos Generales de Cards y Stats (Mantenidos) */
 .card { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
 .card h3 { margin-top: 0; color: #334155; font-size: 1.1rem; margin-bottom: 20px; font-weight: 700; }
 
@@ -507,4 +488,142 @@ export default {
 /* Modal Overlay */
 #overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 1000; }
 .overlay-hidden { display: none; }
+.fa-brands { color: white; }
+
+/* Orders: diseño de tarjetas */
+.orders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.order-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid #eef2f7;
+  box-shadow: 0 6px 18px rgba(12, 20, 30, 0.04);
+  transition: transform .14s ease, box-shadow .14s ease;
+  cursor: pointer;
+  flex-direction: column;
+}
+.order-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 30px rgba(12, 20, 30, 0.07);
+}
+
+/* Thumb imagen de la tienda */
+.order-thumb {
+  flex: 0 0 84px;
+  width: 100%;
+  height: 84px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.order-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Contenido textual de la orden */
+.order-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+}
+.order-top {
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.order-top strong {
+  font-size: 0.96rem;
+  color: #102a43;
+}
+.order-date {
+  font-size: 0.8rem;
+  color: #7b8794;
+}
+
+/* Líneas con detalles */
+.order-middle .line {
+  font-size: 0.88rem;
+  margin-top: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badges y meta */
+.badge.small {
+  display: inline-block;
+  padding: 6px 10px;
+  background: #f1f5f9;
+  color: #223;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid rgba(30,41,59,0.04);
+}
+
+/* Avatar del admin a la derecha */
+.order-admin-avatar {
+  flex: 0 0 48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.order-admin-avatar img {
+  position: relative;
+  bottom: 60px;
+  right: 30px;
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(12,20,30,0.06);
+}
+
+/* Estado responsivo: apilar en móvil */
+@media (max-width: 640px) {
+  .order-card { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px; }
+  .order-thumb { width: 100%; height: 140px; border-radius: 8px; }
+  .order-admin-avatar { justify-content: flex-start; }
+  .order-top { gap: 8px; }
+}
+
+/* pequeño ajuste visual para "no orders" */
+.empty-state {
+  padding: 18px;
+  text-align: center;
+  color: #6b7280;
+  border-radius: 10px;
+  background: #fbfbfd;
+  border: 1px dashed #eef2f7;
+}
+
+.store-line {
+  font-weight: 700;
+  color: #214b8f;
+}
+
+.order-details{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: row-reverse;
+}
 </style>
