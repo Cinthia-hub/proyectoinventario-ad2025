@@ -18,7 +18,8 @@
           </a>
         </li>
 
-        <li :class="['menu-item', { active: isActive('/users') }]">
+        <!-- Mostrar Administrators SOLO si el usuario tiene rol 'admin' -->
+        <li v-if="isAdmin" :class="['menu-item', { active: isActive('/users') }]">
           <a href="#" class="menu-link" @click.prevent="navigateTo('/users', 'users')">
             <i class="fa-regular fa-user"></i>
             <span>Administrators</span>
@@ -77,9 +78,7 @@
 <script setup>
 import { useAuthStore } from '../../store/auth.store';
 import { useRouter, useRoute } from 'vue-router';
-// 3. CAMBIO: Importamos ref y onMounted
 import { ref, onMounted } from 'vue';
-// 4. CAMBIO: Importamos la API y el logo por defecto
 import * as api from '../../api/settings.api.js';
 import defaultLogoImg from '../../assets/logo.png';
 
@@ -96,19 +95,16 @@ const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
-// 5. CAMBIO: Estado reactivo para la configuración
 const defaultLogo = defaultLogoImg;
 const settings = ref({
   name: 'Mercadito',
   logoUrl: ''
 });
 
-// 6. CAMBIO: Cargar configuración al montar el Sidebar
 onMounted(async () => {
   try {
     const data = await api.getSettings();
     if (data) {
-      // Si hay datos en Firebase, actualizamos el estado
       if (data.name) settings.value.name = data.name;
       if (data.logoUrl) settings.value.logoUrl = data.logoUrl;
     }
@@ -133,9 +129,16 @@ const isActive = (path) => {
   if (!path) return false;
   return current === path || current.startsWith(path + '/') || current.startsWith(path);
 };
+
+// Computed helper: ¿es Admin?
+const isAdmin = (() => {
+  const u = authStore.user;
+  return u && (u.role === 'admin' || u.rol === 'admin');
+})();
 </script>
 
 <style scoped>
+/* estilos sin cambios */
 .app-sidebar {
   position: fixed;
   left: 0;
@@ -159,6 +162,7 @@ const isActive = (path) => {
   pointer-events: none;
 }
 
+/* resto... (igual que antes) */
 .sidebar-top {
   display: flex;
   align-items: center;
@@ -166,78 +170,16 @@ const isActive = (path) => {
   padding-bottom: 12px;
   border-bottom: 1px solid #f6f6f6;
 }
-
-.sidebar-logo {
-  width: 36px;
-  height: 36px;
-  object-fit: cover; /* Cambié contain por cover para avatares redondos */
-}
-
-.brand {
-  font-weight: 700;
-  font-size: 16px;
-  color: #1f7bff;
-  letter-spacing: 0.2px;
-}
-
-.sidebar-menu {
-  margin-top: 18px;
-  flex: 1;
-  overflow: auto;
-}
-
-.sidebar-menu ul{
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
+.sidebar-logo { width: 36px; height: 36px; object-fit: cover; }
+.brand { font-weight: 700; font-size: 16px; color: #1f7bff; letter-spacing: 0.2px; }
+.sidebar-menu { margin-top: 18px; flex: 1; overflow: auto; }
+.sidebar-menu ul{ list-style: none; padding: 0; margin: 0; }
 .menu-item { margin: 10px 0; }
-
-.menu-link {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  color: #6d6c6c;
-  text-decoration: none;
-  padding: 8px 6px;
-  border-radius: 8px;
-  transition: background .12s, color .12s;
-}
-
-/* icon general */
-.menu-link i {
-  width: 22px;
-  text-align: center;
-  font-size: 16px;
-  color: #7a7a7a;
-}
-
-/* active / hover */
-.menu-item.active .menu-link,
-.menu-link:hover {
-  background: rgba(51, 119, 249, 0.06);
-  color: #1471ff;
-}
-
-.menu-item.active .menu-link i,
-.menu-link:hover i {
-  color: #1471ff;
-}
-
-.sidebar-bottom {
-  margin-top: 10px;
-  padding-top: 12px;
-  border-top: 1px solid #f6f6f6;
-}
-
-.sidebar-bottom ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-@media (max-width: 800px) {
-  .app-sidebar { display: none; }
-}
+.menu-link { display: flex; align-items: center; gap: 12px; color: #6d6c6c; text-decoration: none; padding: 8px 6px; border-radius: 8px; transition: background .12s, color .12s; }
+.menu-link i { width: 22px; text-align: center; font-size: 16px; color: #7a7a7a; }
+.menu-item.active .menu-link, .menu-link:hover { background: rgba(51, 119, 249, 0.06); color: #1471ff; }
+.menu-item.active .menu-link i, .menu-link:hover i { color: #1471ff; }
+.sidebar-bottom { margin-top: 10px; padding-top: 12px; border-top: 1px solid #f6f6f6; }
+.sidebar-bottom ul { list-style: none; padding: 0; margin: 0; }
+@media (max-width: 800px) { .app-sidebar { display: none; } }
 </style>

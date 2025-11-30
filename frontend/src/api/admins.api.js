@@ -18,15 +18,22 @@ async function parseJsonResponse(res) {
   return JSON.parse(text);
 }
 
+function authHeaders() {
+  const token = localStorage.getItem('token');
+  const h = { "Content-Type": "application/json" };
+  if (token) h["Authorization"] = `Bearer ${token}`;
+  return h;
+}
+
 export async function getUsers() {
-  const res = await fetch(BASE);
+  const res = await fetch(BASE, { headers: authHeaders() });
   return await parseJsonResponse(res);
 }
 
 export async function addUser(payload) {
   const res = await fetch(BASE, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(),
     body: JSON.stringify(payload)
   });
   return await parseJsonResponse(res);
@@ -35,14 +42,14 @@ export async function addUser(payload) {
 export async function updateUser(id, payload) {
   const res = await fetch(`${BASE}/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(),
     body: JSON.stringify(payload)
   });
   return await parseJsonResponse(res);
 }
 
 export async function deleteUser(id) {
-  const res = await fetch(`${BASE}/${id}`, { method: "DELETE" });
+  const res = await fetch(`${BASE}/${id}`, { method: "DELETE", headers: authHeaders() });
   if (res.status === 204) return true;
   return await parseJsonResponse(res);
 }
