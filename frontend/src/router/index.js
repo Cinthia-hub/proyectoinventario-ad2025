@@ -3,7 +3,7 @@ import LoginView from '../views/LoginView.vue'
 import DashboardView from '../views/DashboardView.vue'
 import InventoryView from '../views/InventoryView.vue'
 import ReportsView from '../views/ReportsView.vue'
-import StoreView from '../views/StoreView.vue'
+import StoresView from '../views/StoresView.vue'
 import OrdersView from '../views/OrdersView.vue'
 import SuppliersView from '../views/SuppliersView.vue'
 import AdminsView from '../views/AdminsView.vue'
@@ -37,9 +37,9 @@ const router = createRouter({
             meta: { requiresAuth: true }
         },
         {
-            path: '/store',
-            name: 'store',
-            component: StoreView,
+            path: '/stores',
+            name: 'stores',
+            component: StoresView,
             meta: { requiresAuth: true }
         },
         {

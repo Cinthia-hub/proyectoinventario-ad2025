@@ -42,17 +42,10 @@
           </a>
         </li>
 
-        <li :class="['menu-item', { active: isActive('/store') }]">
-          <a href="#" class="menu-link" @click.prevent="navigateTo('/store')">
+        <li :class="['menu-item', { active: isActive('/stores') }]">
+          <a href="#" class="menu-link" @click.prevent="navigateTo('/stores', 'stores')">
             <i class="fa-solid fa-store"></i>
             <span>Manage Store</span>
-          </a>
-        </li>
-
-        <li :class="['menu-item', { active: isActive('/reports') }]">
-          <a href="#" class="menu-link" @click.prevent="navigateTo('/reports')">
-            <i class="fa-solid fa-square-poll-vertical"></i>
-            <span>Reports</span>
           </a>
         </li>
       </ul>
@@ -78,7 +71,6 @@
 </template>
 
 <script setup>
-import { useAuthStore } from '../../store/auth.store';
 import { useRouter, useRoute } from 'vue-router';
 
 const props = defineProps({
@@ -90,7 +82,6 @@ const props = defineProps({
 
 const emit = defineEmits(['navigate', 'logout']);
 
-const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 
@@ -102,8 +93,6 @@ const navigateTo = (path, key = null) => {
 
 // --- FUNCIÓN PARA SALIR ---
 const handleLogout = () => {
-  // llama a la acción de la store (debe existir logout en authStore)
-  authStore.logout();
   emit('logout');
   // redirige a la raíz (login)
   router.push('/').catch(() => {});
