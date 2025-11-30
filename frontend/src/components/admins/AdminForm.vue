@@ -77,6 +77,7 @@
 
 <script>
 import * as api from "./../../api/admins.api.js";
+import { useAuthStore } from '../../store/auth.store';
 
 export default {
   props: { user: { default: null } },
@@ -102,17 +103,27 @@ export default {
   methods: {
     async submit() {
       try {
-        // Construimos payload con los campos esperados por el backend
         const payload = { ...this.form };
-        // Si password vacío, eliminamos para no sobrescribirlo
         if (!payload.password) delete payload.password;
 
+        // Instanciamos el store aquí para usarlo
+        const authStore = useAuthStore(); 
+
         if (this.user && this.user.id) {
-          // enviar (id, payload) porque la API espera PUT /api/users/:id
+          // --- ESTAMOS EDITANDO ---
           await api.updateUser(this.user.id, payload);
+          
+          // 👇 AQUÍ ES DONDE ACTUALIZAMOS EL USUARIO LOGUEADO 👇
+          // Si el ID del usuario que estoy editando ES IGUAL al ID del usuario logueado...
+          if (authStore.user && authStore.user.id === this.user.id) {
+              authStore.updateUser(payload);
+          }
+
         } else {
+          // --- ESTAMOS CREANDO (No afecta al usuario logueado actual) ---
           await api.addUser(payload);
         }
+        
         this.$emit("saved");
       } catch (err) {
         console.error("Save admin error", err);

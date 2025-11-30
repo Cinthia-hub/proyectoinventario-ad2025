@@ -1,473 +1,510 @@
 <template>
-    <div id="dashboard-wrapper">
-        <Sidebar :collapsed="!sidebarOpen" @navigate="onNavigate" />
-        <div class="main-area" :class="{ 'sidebar-collapsed': !sidebarOpen }">
-            <Navbar
-              :sidebar-open="sidebarOpen"
-              :placeholder="'...'"
-              @toggle-sidebar="toggleSidebar"
-              @search="handleSearch"
-              @navigate="onNavigate"
-            />
+  <div id="dashboard-wrapper">
+    <Sidebar :collapsed="!sidebarOpen" @navigate="onNavigate" />
+    
+    <div class="main-area" :class="{ 'sidebar-collapsed': !sidebarOpen }">
+      <Navbar
+        :sidebar-open="sidebarOpen"
+        :placeholder="'...'"
+        @toggle-sidebar="toggleSidebar"
+        @search="handleSearch"
+        @navigate="onNavigate"
+      />
 
-            <div class="content">
-                <section class="card stats-card">
-                    <h3 class="card-title">Overall Inventory</h3>
-                    <div class="stats-grid">
-                        <div class="stat">
-                            <h6 class="stat-title txt-blue">Categories</h6>
-                            <div class="stat-value">{{ stats.categories }}</div>
-                            <div class="stat-sub">Last 7 days</div>
-                        </div>
-                        <div class="stat">
-                            <h6 class="stat-title txt-orange">Total Products</h6>
-                            <div class="stat-value">{{ stats.totalUnits }}</div>
-                            <div class="stat-sub">Revenue ₹{{ stats.revenue }}</div>
-                        </div>
-                        <div class="stat">
-                            <h6 class="stat-title txt-purple">Top Selling</h6>
-                            <div class="stat-value">{{ stats.topSelling }}</div>
-                            <div class="stat-sub">Cost ₹{{ stats.cost }}</div>
-                        </div>
-                        <div class="stat">
-                            <h6 class="stat-title txt-lightred">Low Stocks</h6>
-                            <div class="stat-value">{{ stats.ordered }}</div>
-                            <div class="stat-sub">Not in stock {{ stats.not_in_stock }}</div>
-                        </div>
-                    </div>
-                </section>
+      <div class="content">
+        
+        <div class="welcome-header">
+          <div>
+            <h1>¡Hola, {{ getUserName }}! 👋</h1>
+            <p class="subtitle">Aquí está el resumen de <strong>Mercadito</strong> para hoy.</p>
+          </div>
+          <div class="date-pill">
+            <i class="fa-regular fa-calendar"></i> {{ currentDate }}
+          </div>
+        </div>
 
-                <section class="card chart-card">
-                    <div class="chart-header">
-                        <h3>Product Sales Analytics</h3>
-                        <div class="select-wrapper">
-                            <label for="chart-product">Ver ventas de: </label>
-                            <select id="chart-product" v-model="selectedProductId" @change="updateChart">
-                                <option :value="null" disabled>Selecciona un producto</option>
-                                <option v-for="prod in products" :key="prod.id" :value="prod.id">
-                                    {{ prod.nombre }}
-                                </option>
-                            </select>
-                        </div>
+        <div class="quick-actions-grid">
+          <button class="action-card blue" @click="$router.push('/inventory')">
+            <div class="icon-circle"><i class="fa-solid fa-box"></i></div>
+            <div class="action-text">
+              <span>Agregar Producto</span>
+              <small>Inventario</small>
+            </div>
+          </button>
+          <button class="action-card green">
+            <div class="icon-circle"><i class="fa-solid fa-cash-register"></i></div>
+            <div class="action-text">
+              <span>Nueva Venta</span>
+              <small>Terminal POS</small>
+            </div>
+          </button>
+          <button class="action-card orange" @click="$router.push('/suppliers')">
+            <div class="icon-circle"><i class="fa-solid fa-truck-ramp-box"></i></div>
+            <div class="action-text">
+              <span>Nuevo Proveedor</span>
+              <small>Gestión</small>
+            </div>
+          </button>
+          <button class="action-card purple">
+            <div class="icon-circle"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+            <div class="action-text">
+              <span>Ver Reportes</span>
+              <small>Finanzas</small>
+            </div>
+          </button>
+        </div>
+
+        <section class="section-container">
+            <div class="section-header">
+                <h3><i class="fa-solid fa-store"></i> Tiendas y Proveedores</h3>
+                <button class="btn-link" @click="$router.push('/suppliers')">
+                    Ver todos <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+          <div class="suppliers-grid">
+            
+            <div class="store-card">
+                <div class="store-cover" style="background-image: url('https://thelogisticsworld.com/wp-content/uploads/2023/02/nueva-tienda-de-bodega-aurrera-1.jpg');"></div>
+                <div class="store-body">
+                <img src="https://i.pravatar.cc/150?u=Consuelo" class="store-avatar" alt="Consuelo">
+                <div class="store-info">
+                    <h4>Bodega Aurrera</h4>
+                    <p class="contact-name"><i class="fa-solid fa-user-tag"></i> Consuelo Dubal</p>
+                    <div class="store-tags">
+                    <span class="tag">Abarrotes</span>
+                    <span class="tag">Despensa</span>
                     </div>
-                    
-                    <div class="chart-container" v-if="selectedProductId">
-                        <Bar :data="chartData" :options="chartOptions" />
-                    </div>
-                    <div v-else class="no-chart">
-                        <p>Selecciona un producto arriba para ver su gráfica de ventas.</p>
-                    </div>
-                </section>
+                </div>
+                </div>
             </div>
 
-            <product-form v-if="showForm" :product="editingProduct" @close="closeForm" @saved="onSaved" />
-            <product-view v-if="viewingProduct" :product="viewingProduct" @close="onViewClose" @edit="openEdit" @delete="requestDelete" />
+            <div class="store-card">
+                <div class="store-cover" style="background-image: url('https://dnclcgcvl4f14.cloudfront.net/siila-cm/prd/1280w/7910-1686932784704.jpg');"></div>
+                <div class="store-body">
+                <img src="https://i.pravatar.cc/150?u=Paco" class="store-avatar" alt="Paco">
+                <div class="store-info">
+                    <h4>La Comer</h4>
+                    <p class="contact-name"><i class="fa-solid fa-user-tag"></i> Don Paco Hdez</p>
+                    <div class="store-tags">
+                    <span class="tag">Frescos</span>
+                    <span class="tag">Gourmet</span>
+                    </div>
+                </div>
+                </div>
+            </div>
 
-            <filter-modal
-                v-if="showFilterModal"
-                :fields="filterFields"
-                :initial="currentFilter"
-                @apply="applyFilter"
-                @clear="clearFilter"
-                @close="() => { showFilterModal = false; overlayVisible = false }"
-            />
+            <div class="store-card">
+                <div class="store-cover" style="background-image: url('https://i0.wp.com/estadoluz.com/wp-content/uploads/2024/07/Banner-Estado-Luz-1200-x-700-px-2024-07-04T160746.149.png?fit=1200%2C700&ssl=1');">
+                <span class="cover-title">EL REMATE</span>
+                </div>
+                <div class="store-body">
+                <img src="https://i.pravatar.cc/150?u=Miguel" class="store-avatar" alt="Miguel">
+                <div class="store-info">
+                    <h4>El Remate</h4>
+                    <p class="contact-name"><i class="fa-solid fa-user-tag"></i> Miguel</p>
+                    <div class="store-tags">
+                    <span class="tag">Ofertas</span>
+                    <span class="tag">Varios</span>
+                    </div>
+                </div>
+                </div>
+            </div>
 
-            <confirm-modal
-                :visible="confirmModalVisible"
-                title="Delete product"
-                :message="confirmMessage"
-                @confirm="onConfirmDelete"
-                @cancel="onCancelDelete"
-            />
+            <div class="store-card">
+                <div class="store-cover" style="background-image: url('https://retailers.mx/revista/wp-content/uploads/2022/06/Sorian-Hiper-Tapachula-scaled.jpg');"></div>
+                <div class="store-body">
+                <img src="https://i.pravatar.cc/150?u=Chema" class="store-avatar" alt="Chema">
+                <div class="store-info">
+                    <h4>Soriana</h4>
+                    <p class="contact-name"><i class="fa-solid fa-user-tag"></i> Doña Chema</p>
+                    <div class="store-tags">
+                    <span class="tag">General</span>
+                    </div>
+                </div>
+                </div>
+            </div>
+          </div>
+        </section>
 
-            <div id="overlay" :class="{ 'overlay-hidden': !overlayVisible }" @click="overlayClicked"></div>
+        <div class="dashboard-grid-bottom">
+          
+          <div class="left-col">
+             
+             <section class="card stats-panel">
+                <h3>Resumen del Mes</h3>
+                <div class="stats-list-horizontal">
+                    <div class="mini-stat">
+                        <div class="stat-icon-small bg-blue"><i class="fa-solid fa-layer-group"></i></div>
+                        <div><span>Categorías</span><strong>{{ stats.categories }}</strong></div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="stat-icon-small bg-orange"><i class="fa-solid fa-box"></i></div>
+                        <div><span>Productos</span><strong>{{ stats.totalUnits }}</strong></div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="stat-icon-small bg-green"><i class="fa-solid fa-dollar-sign"></i></div>
+                        <div><span>Valor</span><strong>${{ stats.revenue }}</strong></div>
+                    </div>
+                    <div class="mini-stat">
+                        <div class="stat-icon-small bg-red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div><span>Bajo Stock</span><strong class="text-danger">{{ stats.ordered }}</strong></div>
+                    </div>
+                </div>
+             </section>
+
+             <section class="card chart-panel">
+                <div class="card-header-simple">
+                    <h3>Popularidad</h3>
+                    <select v-model="selectedProductId" @change="updateChart" class="chart-select">
+                        <option :value="null" disabled>Seleccionar producto</option>
+                        <option v-for="prod in products" :key="prod.id" :value="prod.id">{{ prod.nombre }}</option>
+                    </select>
+                </div>
+                <div class="chart-container" v-if="selectedProductId">
+                    <Bar :data="chartData" :options="chartOptions" />
+                </div>
+                <div v-else class="no-chart-state">
+                    <i class="fa-solid fa-chart-area"></i>
+                    <p>Elige un producto para analizar</p>
+                </div>
+             </section>
+          </div>
+
+          <aside class="right-col">
+            <div class="card store-profile-card">
+               <div class="store-header-bg"></div>
+               <div class="store-logo-wrapper">
+                  <i class="fa-solid fa-shop"></i>
+               </div>
+               <div class="store-info-center">
+                  <h2>Mercadito Central</h2>
+                  <span class="status-badge online">● Abierto</span>
+                  
+                  <div class="store-details-list">
+                     <p><i class="fa-solid fa-location-dot"></i> Centro, Irapuato</p>
+                     <p><i class="fa-solid fa-phone"></i> 462-123-0000</p>
+                     <p><i class="fa-solid fa-envelope"></i> contacto@mercadito.com</p>
+                  </div>
+
+                  <div class="social-buttons">
+                     <button class="social-btn fb"><i class="fa-brands fa-facebook-f"></i></button>
+                     <button class="social-btn ig"><i class="fa-brands fa-instagram"></i></button>
+                     <button class="social-btn wa"><i class="fa-brands fa-whatsapp"></i></button>
+                  </div>
+               </div>
+            </div>
+
+          </aside>
+
         </div>
+
+      </div>
+
+      <product-form v-if="showForm" :product="editingProduct" @close="closeForm" @saved="onSaved" />
+      <div id="overlay" :class="{ 'overlay-hidden': !overlayVisible }" @click="overlayClicked"></div>
     </div>
+  </div>
 </template>
 
 <script>
 import Sidebar from "../components/layout/Sidebar.vue";
 import Navbar from "../components/layout/Navbar.vue";
-import ProductList from "../components/products/ProductList.vue";
 import ProductForm from "../components/products/ProductForm.vue";
-import ProductView from "../components/products/ProductView.vue";
-import FilterModal from "../components/products/FilterModal.vue";
-import ConfirmModal from "../components/layout/ConfirmModal.vue";
 import * as api from "../api/product.api.js";
+import { useAuthStore } from '../store/auth.store';
 
-// Importaciones para la Gráfica (Chart.js)
+// Chart.js
 import { Bar } from 'vue-chartjs'
 import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
-
-// Registrar componentes de Chart.js
 ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale)
 
 export default {
-    name: "DashboardView",
-    components: { Sidebar, Navbar, ProductList, ProductForm, ProductView, FilterModal, ConfirmModal, Bar },
-    data() {
-        return {
-        products: [],
-        filtered: [],
-        search: "",
-        currentPage: 1,
-        perPage: 5,
-        showForm: false,
-        editingProduct: null,
-        overlayVisible: false,
-        viewingProduct: null,
-        showFilterModal: false,
-        currentFilter: { field: "", value: "" },
-        filterFields: [
-            { label: "Products", value: "nombre" },
-            { label: "Buying Price", value: "price" },
-            { label: "Quantity", value: "quantity" },
-            { label: "Threshold Value", value: "threshold_value" },
-            { label: "Expiry Date", value: "expiry_date" },
-            { label: "Availability", value: "availability" }
-        ],
-        stats: { categories: 0, totalUnits: 0, revenue: 0, topSelling: 0, cost: 0, ordered: 0, not_in_stock: 0 },
-        sidebarOpen: true,
-        // delete confirmation
-        confirmModalVisible: false,
-        productToDelete: null,
-        confirmMessage: "",
-        
-        // --- DATOS NUEVOS PARA LA GRÁFICA ---
-        selectedProductId: null,
-        chartData: {
-            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-            datasets: [ { data: [] } ]
-        },
-        chartOptions: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                title: { display: true, text: 'Ventas de la semana' }
-            }
-        }
-        };
-    },
-    computed: {
-        totalPages() {
-        const total = this.filtered.length;
-        return Math.max(1, Math.ceil(total / this.perPage));
-        },
-        pagedProducts() {
-        const start = (this.currentPage - 1) * this.perPage;
-        return this.filtered.slice(start, start + this.perPage);
-        }
-    },
-    methods: {
-        toggleSidebar() {
-        this.sidebarOpen = !this.sidebarOpen;
-        },
-        handleSearch(term) {
-          this.search = term;
-          this.currentPage = 1;
-          this.applyFilters();
-        },
-        onNavigate(key) {
-          const map = {
-            home: "/",
-            products: "/inventory",
-            inventory: "/inventory",
-            suppliers: "/suppliers",
-            admins: "/admin",
-            orders: "/orders"
-          };
-          const path = map[key] || "/";
+  name: "DashboardView",
+  components: { Sidebar, Navbar, ProductForm, Bar },
+  
+  setup() {
+    const authStore = useAuthStore();
+    return { authStore };
+  },
 
-          if (this.$router) {
-            this.$router.push(path).catch(() => {});
-          } else {
-            console.warn("Router no disponible, navegar a:", path);
-          }
-        },
+  data() {
+    return {
+      products: [],
+      sidebarOpen: true,
+      
+      // Modal
+      showForm: false,
+      editingProduct: null,
+      overlayVisible: false,
 
-        overlayClicked() {
-        this.showForm = false;
-        this.showFilterModal = false;
-        this.viewingProduct = null;
-        this.overlayVisible = false;
-        this.confirmModalVisible = false;
-        this.productToDelete = null;
-        },
-        async load() {
-        this.products = await api.getProducts();
-        this.applyFilters();
-        this.computeStats();
-        },
-        applyFilters() {
-        const s = this.search.trim().toLowerCase();
-        if (!s) {
-            this.filtered = [...this.products];
-        } else {
-            this.filtered = this.products.filter((p) => {
-            return ["nombre", "category", "expiry_date", "availability"].some((k) =>
-                (p[k] || "").toString().toLowerCase().includes(s)
-            );
-            });
-        }
-        if (this.currentFilter && this.currentFilter.field && this.currentFilter.value !== "") {
-            const { field, value } = this.currentFilter;
-            this.filtered = this.filtered.filter((product) => {
-            const dataValue = product[field];
-            if (typeof dataValue === "string") {
-                return dataValue.toLowerCase().includes(value.toLowerCase());
-            } else {
-                return dataValue == value;
-            }
-            });
-        }
-        if (this.currentPage > this.totalPages) this.currentPage = this.totalPages;
-        },
-        onSearch() {
-        this.currentPage = 1;
-        this.applyFilters();
-        },
-        openAdd() {
-        this.editingProduct = null;
-        this.showForm = true;
-        this.overlayVisible = true;
-        },
-        openEdit(product) {
-        this.editingProduct = product;
-        this.showForm = true;
-        this.overlayVisible = true;
-        },
-        closeForm() {
-        this.showForm = false;
-        this.overlayVisible = false;
-        },
-        async onSaved() {
-        await this.load();
-        this.closeForm();
-        },
-        viewProduct(product) {
-        this.viewingProduct = product;
-        this.overlayVisible = true;
-        },
-        onViewClose() {
-        this.viewingProduct = null;
-        this.overlayVisible = false;
-        },
-
-        requestDelete(product) {
-        this.productToDelete = product;
-        this.confirmMessage = `Delete "<strong>${product.nombre}</strong>"?`;
-        this.confirmModalVisible = true;
-        this.overlayVisible = true;
-        },
-
-        async onConfirmDelete() {
-        if (!this.productToDelete || !this.productToDelete.id) {
-            this.confirmModalVisible = false;
-            this.overlayVisible = false;
-            this.productToDelete = null;
-            return;
-        }
-        try {
-            await api.deleteProduct(this.productToDelete.id);
-            await this.load();
-        } catch (err) {
-            console.error("Delete failed", err);
-            alert("Failed to delete product. See console for details.");
-        } finally {
-            this.confirmModalVisible = false;
-            this.overlayVisible = false;
-            this.productToDelete = null;
-        }
-        },
-
-        onCancelDelete() {
-        this.confirmModalVisible = false;
-        this.overlayVisible = false;
-        this.productToDelete = null;
-        },
-
-        prevPage() {
-        if (this.currentPage > 1) this.currentPage--;
-        },
-        nextPage() {
-        if (this.currentPage < this.totalPages) this.currentPage++;
-        },
-        openFilterModal() {
-        this.showFilterModal = true;
-        this.overlayVisible = true;
-        },
-        applyFilter(payload) {
-        this.currentFilter = { field: payload.field, value: payload.value };
-        this.showFilterModal = false;
-        this.overlayVisible = false;
-        this.currentPage = 1;
-        this.applyFilters();
-        },
-        clearFilter() {
-        this.currentFilter = { field: "", value: "" };
-        this.showFilterModal = false;
-        this.overlayVisible = false;
-        this.currentPage = 1;
-        this.applyFilters();
-        },
-        async downloadAll() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const headers = ["Product Name", "Price", "Quantity", "Threshold Value", "Expiry Date", "Availability"];
-        const body = this.products.map((p) => [p.nombre, p.price, p.quantity, p.threshold_value, p.expiry_date, p.availability]);
-        doc.autoTable({ head: [headers], body, margin: { top: 20 } });
-        doc.save("all_products.pdf");
-        },
-        computeStats() {
-        const set = new Set();
-        let totalUnits = 0;
-        let revenue = 0;
-        let cost = 0;
-        const sorted = [...this.products].sort((a, b) => (b.quantity || 0) - (a.quantity || 0));
-        const top_number = Math.min(Math.floor(this.products.length / 2), sorted.length ? sorted[0].quantity : 0);
-        const notInStock = this.products.filter((p) => (p.quantity || 0) === 0).length;
-        const lowStockOrdered = this.products.filter((p) => (p.quantity === 0 || p.quantity <= p.threshold_value) && (p.on_the_way || 0) > 0).length;
-        this.products.forEach((p) => {
-            if (p.category) set.add(p.category);
-            totalUnits += p.quantity || 0;
-            revenue += (p.quantity || 0) * (p.price || 0); // Asumiendo Precio de Venta
-            // Para 'Cost' usualmente se necesita 'Buying Price', usaremos price * 0.7 como ejemplo si no existe buying_price
-            let buyingPrice = p.buying_price || (p.price * 0.7); 
-            cost += (p.quantity || 0) * buyingPrice;
-        });
-        
-        this.stats = { 
-            categories: set.size, 
-            totalUnits, 
-            revenue: Math.round(revenue), 
-            topSelling: top_number, 
-            cost: Math.round(cost), 
-            ordered: lowStockOrdered, 
-            not_in_stock: notInStock 
-        };
-        },
-        
-        // --- LOGICA PARA ACTUALIZAR GRÁFICA ---
-        updateChart() {
-            if (!this.selectedProductId) return;
-            
-            const product = this.products.find(p => p.id === this.selectedProductId);
-            if(product) {
-                // Generamos datos simulados basados en el ID para que varíe un poco, 
-                // ya que normalmente necesitarías una tabla de "Ventas Históricas".
-                // Aquí solo simulamos para mostrar la funcionalidad visual.
-                const base = product.quantity > 0 ? Math.floor(product.quantity / 5) : 5;
-                const dataSimulada = Array.from({length: 7}, () => Math.floor(Math.random() * base) + 1);
-
-                this.chartData = {
-                    labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-                    datasets: [
-                        {
-                            label: `Ventas de ${product.nombre}`,
-                            backgroundColor: '#2196f3',
-                            data: dataSimulada
-                        }
-                    ]
-                };
-            }
-        }
-    },
-    mounted() {
-        this.load();
-        if (window.innerWidth < 900) this.sidebarOpen = false;
-        window.addEventListener("resize", () => {
-        if (window.innerWidth >= 900) this.sidebarOpen = true;
-        });
-    }
+      // Stats
+      stats: { categories: 0, totalUnits: 0, revenue: 0, topSelling: 0, cost: 0, ordered: 0, not_in_stock: 0 },
+      
+      // Chart
+      selectedProductId: null,
+      chartData: { labels: [], datasets: [] },
+      chartOptions: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } },
+      
+      currentDate: new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
     };
+  },
+  
+  computed: {
+    getUserName() {
+      return this.authStore.user?.nombre || this.authStore.user?.username || 'Usuario';
+    }
+  },
+
+  methods: {
+    toggleSidebar() { this.sidebarOpen = !this.sidebarOpen; },
+    
+    async load() {
+      try {
+        this.products = await api.getProducts();
+        this.computeStats();
+      } catch (e) { console.error("Error cargando productos", e); }
+    },
+
+    computeStats() {
+      const set = new Set();
+      let totalUnits = 0;
+      let revenue = 0;
+      this.products.forEach(p => {
+        if (p.category) set.add(p.category);
+        totalUnits += Number(p.quantity) || 0;
+        revenue += (Number(p.quantity) || 0) * (Number(p.price) || 0);
+      });
+      
+      this.stats = { 
+        categories: set.size, 
+        totalUnits, 
+        revenue: Math.round(revenue), 
+        ordered: this.products.filter(p => p.quantity < 5).length, 
+        not_in_stock: this.products.filter(p => p.quantity == 0).length 
+      };
+    },
+
+    updateChart() {
+      if (!this.selectedProductId) return;
+      const product = this.products.find(p => p.id === this.selectedProductId);
+      if(product) {
+        this.chartData = {
+          labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+          datasets: [{
+            label: 'Ventas',
+            backgroundColor: '#4f46e5',
+            borderRadius: 6,
+            data: Array.from({length: 7}, () => Math.floor(Math.random() * 10) + 1)
+          }]
+        };
+      }
+    },
+
+    handleSearch(term) { console.log(term); },
+    onNavigate(path) { this.$router.push(path); },
+    
+    openAdd() { this.editingProduct = null; this.showForm = true; this.overlayVisible = true; },
+    closeForm() { this.showForm = false; this.overlayVisible = false; },
+    async onSaved() { await this.load(); this.closeForm(); },
+    overlayClicked() { this.closeForm(); }
+  },
+  mounted() {
+    this.load();
+    if (window.innerWidth < 900) this.sidebarOpen = false;
+  }
+};
 </script>
 
 <style scoped>
-/* ESTILOS PREVIOS (MANTENIDOS) */
-#dashboard-wrapper {
-    display: flex;
-    width: 100%;
-    min-height: 100vh;
-    position: relative;
-}
-.main-area {
-    width: 100%;
-    min-height: 100vh;
-    background-color: #f4f5f7;
-    transition: margin-left 0.3s ease-in-out;
-    display: flex;
-    flex-direction: column;
-}
-.main-area:not(.sidebar-collapsed) { margin-left: 260px; }
-.sidebar-collapsed .main-area { margin-left: 80px; }
-.topbar {
-    height: 64px; background-color: #ffffff; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 20px; border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 99;
-}
-.topbar-left, .topbar-right { display: flex; align-items: center; gap: 15px; }
-.content { padding: 20px; flex-grow: 1; }
+/* --- LAYOUT --- */
+#dashboard-wrapper { display: flex; width: 100%; min-height: 100vh; position: relative; overflow-x: hidden; font-family: 'Segoe UI', sans-serif; }
+.main-area { width: 100%; min-height: 100vh; background-color: #f8fafc; transition: margin-left 0.22s ease; display: flex; flex-direction: column; }
+.main-area { margin-left: 200px; }
+.main-area.sidebar-collapsed { margin-left: 0 !important; }
+.content { padding: 15px 25px; flex-grow: 1; max-width: 100%; /* <--- ESTO ESTÁ BIEN */box-sizing: border-box; display: flex; flex-direction: column;gap: 15px;}
+/* --- HEADER BIENVENIDA --- */
+.welcome-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 35px; border-bottom: 1px solid #e2e8f0; padding-bottom: 20px; }
+.welcome-header h1 { font-size: 1.8rem; color: #1e293b; margin: 0 0 5px 0; font-weight: 700; }
+.subtitle { color: #64748b; margin: 0; font-size: 1rem; }
+.date-pill { background: #fff; padding: 8px 16px; border-radius: 50px; color: #475569; font-size: 0.9rem; font-weight: 500; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; align-items: center; gap: 8px; }
 
-.card {
-    background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+/* --- ACCESOS RÁPIDOS --- */
+.quick-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 40px; }
+.action-card { border: none; background: white; padding: 20px; border-radius: 16px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); text-align: left; }
+.action-card:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+.action-text span { font-weight: 700; color: #334155; font-size: 1rem; display: block; }
+.action-text small { color: #94a3b8; font-size: 0.85rem; }
+.icon-circle { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: white; flex-shrink: 0; }
+
+.action-card.blue .icon-circle { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.action-card.green .icon-circle { background: linear-gradient(135deg, #10b981, #059669); }
+.action-card.orange .icon-circle { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.action-card.purple .icon-circle { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+/* --- SECCIÓN PROVEEDORES --- */
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.section-header h3 { font-size: 1.25rem; color: #1e293b; margin: 0; font-weight: 700; }
+.btn-link { background: none; border: none; color: #3b82f6; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+.btn-link:hover { text-decoration: underline; }
+
+.suppliers-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-bottom: 40px; }
+.store-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); transition: transform 0.2s; border: 1px solid #f1f5f9; display: flex; flex-direction: column; }
+.store-card:hover { transform: translateY(-5px); box-shadow: 0 15px 25px -5px rgba(0, 0, 0, 0.1); }
+
+/* Agrega background-size: cover para que la foto llene todo el espacio sin deformarse */
+.store-cover { height: 100px; background-position: center; background-repeat: no-repeat; background-size: cover; position: relative;}
+.cover-title { position: absolute; bottom: 10px; left: 10px; color: white; font-weight: 900; font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+
+.store-body { padding: 15px; position: relative; padding-top: 40px; }
+.store-avatar { width: 60px; height: 60px; border-radius: 50%; border: 4px solid white; position: absolute; top: -30px; left: 15px; object-fit: cover; background: white; }
+
+.store-info h4 { margin: 0 0 5px 0; font-size: 1.1rem; color: #1e293b; }
+.contact-name { color: #64748b; font-size: 0.9rem; margin: 0 0 10px 0; }
+.store-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+.tag { background: #f1f5f9; color: #475569; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+
+/* --- GRID INFERIOR (Alineación Perfecta) --- */
+.dashboard-grid-bottom { 
+  display: grid; 
+  grid-template-columns: 2.2fr 1fr; /* Le damos un poco más de espacio a la gráfica */
+  gap: 20px; 
+  align-items: stretch; /* <--- TRUCO: Esto obliga a que ambas columnas midan lo mismo */
+  margin-bottom: 20px;
 }
-.table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
 
-/* UTILIDADES TEXTO/BOTONES */
-.menu-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
-.search-wrapper { position: relative; display: flex; align-items: center; }
-.search-input { padding: 8px 35px 8px 10px; border: 1px solid #ddd; border-radius: 4px; width: 250px; }
-.search-icon { position: absolute; right: 10px; color: #888; }
-.icon-btn { background: none; border: none; font-size: 1.1rem; cursor: pointer; color: #555; }
-
-.txt-blue { color: #2196f3; }
-.txt-orange { color: #ff9800; }
-.txt-purple { color: #9c27b0; }
-.txt-lightred { color: #f44336; }
-.stat-value { font-size: 1.5rem; font-weight: bold; margin: 5px 0; }
-.stat-sub { font-size: 0.8rem; color: #888; }
-.btn-blue { background: #2196f3; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
-.btn-white { background: white; border: 1px solid #ddd; padding: 8px 16px; border-radius: 4px; cursor: pointer; margin-left: 8px; }
-
-#overlay {
-    position: fixed; top:0; left:0; width:100%; height:100%;
-    background: rgba(0,0,0,0.5); z-index: 1000;
+@media (max-width: 1100px) { 
+  .dashboard-grid-bottom { grid-template-columns: 1fr; } 
 }
+
+/* Columna Izquierda (Stats + Chart) */
+.left-col { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 20px; 
+}
+
+/* Columna Derecha (Tienda) */
+.right-col { 
+  display: flex; 
+  flex-direction: column; 
+  height: 100%; /* Para que llene el hueco */
+}
+
+/* 1. Ajuste de altura de la Gráfica (Más chaparrita) */
+/* Antes estaba en 220px o 300px */
+.chart-container { 
+  height: 180px; /* <--- REDUCIR A ESTE VALOR */
+  width: 100%; 
+  position: relative;
+}
+
+.no-chart-state { 
+  height: 180px; /* <--- IGUALAR AQUI */
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  justify-content: center; 
+  color: #94a3b8; 
+  background: #f8fafc; 
+  border-radius: 12px; 
+  border: 2px dashed #e2e8f0; 
+}
+.no-chart-state i { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.5; }
+
+/* 2. Ajuste de la Tarjeta de Tienda (Para que se estire) */
+.store-profile-card { 
+  background: white; 
+  border-radius: 16px; 
+  overflow: hidden; 
+  border: 1px solid #e2e8f0; 
+  text-align: center; 
+  padding-bottom: 20px; 
+  
+  /* ESTO HACE QUE SE ESTIRE PARA ALCANZAR A LA GRÁFICA */
+  height: 100%; 
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; 
+}
+
+/* Estilos internos de la tienda (igual que antes) */
+.store-header-bg { 
+  height: 50px; /* Antes 70px */
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6); 
+  flex-shrink: 0; 
+}
+/* Reducimos el círculo del logo */
+.store-logo-wrapper { 
+  width: 60px;  /* Antes 80px */
+  height: 60px; /* Antes 80px */
+  background: white; 
+  border-radius: 50%; 
+  margin: -30px auto 5px auto; /* Ajustamos el margen negativo */
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-size: 1.8rem; /* Icono más chico */
+  color: #3b82f6; 
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+}
+/* Ajustamos márgenes de textos */
+.store-info-center h2 { 
+  margin: 0 0 2px 0; 
+  font-size: 1.1rem; /* Texto un poco más chico */
+  color: #1e293b; 
+}
+.status-badge { 
+  font-size: 0.75rem; 
+  padding: 2px 10px; 
+  border-radius: 20px; 
+  font-weight: 600; 
+  margin-bottom: 10px; /* Menos espacio abajo */
+  display: inline-block; 
+  background: #dcfce7; 
+  color: #166534; 
+}
+.store-details-list { text-align: left; padding: 0 25px; margin-bottom: auto; /* Empuja los botones abajo */ }
+/* Reducimos espacio entre los datos de contacto */
+.store-details-list p { 
+  margin: 6px 0; /* Antes 12px */
+  color: #64748b; 
+  font-size: 0.85rem; 
+  display: flex; 
+  align-items: center; 
+  gap: 10px; 
+}
+.store-details-list i { color: #94a3b8; width: 20px; text-align: center; font-size: 1.1rem; }
+
+/* Botones sociales un poco más compactos */
+.social-buttons { 
+  display: flex; 
+  justify-content: center; 
+  gap: 10px; 
+  margin-top: 15px; /* Menos margen arriba */
+}
+.social-btn { width: 40px; height: 40px; border-radius: 50%; border: none; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; cursor: pointer; transition: transform 0.2s; }
+.social-btn:hover { transform: scale(1.1); }
+.fb { background: #1877f2; } .ig { background: #e1306c; } .wa { background: #25d366; }
+
+/* Estilos Generales de Cards y Stats (Mantenidos) */
+.card { background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
+.card h3 { margin-top: 0; color: #334155; font-size: 1.1rem; margin-bottom: 20px; font-weight: 700; }
+
+.stats-list-horizontal { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+@media (max-width: 1300px) { .stats-list-horizontal { grid-template-columns: repeat(2, 1fr); } }
+
+.mini-stat { background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; gap: 12px; }
+.mini-stat div { display: flex; flex-direction: column; }
+.mini-stat span { color: #64748b; font-size: 0.8rem; }
+.mini-stat strong { color: #1e293b; font-size: 1.1rem; }
+.stat-icon-small { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1rem; flex-shrink: 0; }
+.bg-blue { background: #3b82f6; } .bg-orange { background: #f59e0b; } .bg-green { background: #10b981; } .bg-red { background: #ef4444; }
+.text-danger { color: #ef4444; }
+
+.card-header-simple { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.chart-select { padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 8px; color: #475569; outline: none; font-size: 0.9rem;}
+
+/* Modal Overlay */
+#overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); z-index: 1000; }
 .overlay-hidden { display: none; }
-
-/* NUEVOS ESTILOS PARA EL DASHBOARD Y GRÁFICA */
-.chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-.select-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.select-wrapper select {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    outline: none;
-}
-.chart-container {
-    position: relative;
-    height: 300px; /* Altura fija para que la gráfica no crezca infinitamente */
-    width: 100%;
-}
-.no-chart {
-    height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #888;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    border: 2px dashed #ddd;
-}
 </style>
