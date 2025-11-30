@@ -1,0 +1,119 @@
+{
+	"info": {
+		"_postman_id": "a78093ad-15c2-487a-83ea-91ac3eabffec",
+		"name": "Suppliers",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34558101"
+	},
+	"item": [
+		{
+			"name": "Get All Suppliers",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/suppliers",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"suppliers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Suppliers",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Don Paco Hernandez\",\r\n  \"contact\": \"La Comercial Mexicana\",\r\n  \"email\": \"paco@ugto.mx\",\r\n  \"phone\": \"4626024886\",\r\n  \"address\": \"Circuito Nube\",\r\n  \"notes\": \"Proveedor de confianza\",\r\n  \"photo_url\": \"https://media.istockphoto.com/id/1090878494/es/foto/retrato-de-joven-sonriente.jpg\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/suppliers",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"suppliers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Suppliers",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"phone\": \"4626027777\",\r\n    \"email\": \"consuelo@ugto.mx\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/suppliers/O9TCjkvKOK7ojjGFEBbe",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"suppliers",
+						"O9TCjkvKOK7ojjGFEBbe"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Suppliers",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/suppliers/Bu6FFFcOHlJB4SFd61gT",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"suppliers",
+						"Bu6FFFcOHlJB4SFd61gT"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "http://localhost:3000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

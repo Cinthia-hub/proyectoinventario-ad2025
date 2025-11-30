@@ -1,0 +1,119 @@
+{
+	"info": {
+		"_postman_id": "1099b838-2a26-4afa-b1d1-592e9dcbe365",
+		"name": "Users",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34558101"
+	},
+	"item": [
+		{
+			"name": "Get All Users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/users",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Users",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"nombre\": \"diego\",\r\n  \"username\": \"diegogzl\",\r\n  \"password\": \"123456789\", \r\n  \"rol\": \"admin\",\r\n  \"email\": \"sergio@gmail.com\",\r\n  \"telefono\": \"4626024886\",\r\n  \"direccion\": \"Casa de Cristo\",\r\n  \"photo_url\": \"https://i.pinimg.com/236x/0b/15/e8/0b15e84cf44c886f0ba0b7c35168e4c9.jpg\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/users",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"users"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Users",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"gabriel\",\r\n  \"telefono\": \"9999999999\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/users/mCr5O7YpcVaUcLOa5HVM",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"users",
+						"mCr5O7YpcVaUcLOa5HVM"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Users",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/users/mCr5O7YpcVaUcLOa5HVM",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"users",
+						"mCr5O7YpcVaUcLOa5HVM"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "http://localhost:3000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

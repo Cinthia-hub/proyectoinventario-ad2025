@@ -1,0 +1,119 @@
+{
+	"info": {
+		"_postman_id": "e8178c0e-3c05-40fb-8ae9-9b034480c6d1",
+		"name": "Stores",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34558101"
+	},
+	"item": [
+		{
+			"name": "Get All Stores",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/stores",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"stores"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Stores",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"name\": \"Soriana\",\r\n  \"manager\": \"Ejemplin Sanchez\",\r\n  \"address\": \"Ejemplo #410\",\r\n  \"phone\": \"0987654321\",\r\n  \"notes\": \"Es muy economica\",\r\n  \"photo_url\": \"https://upload.wikimedia.org/wikipedia/commons/2/23/Soriana_S%C3%BAper.JPG\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/stores",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"stores"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Stores",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"manager\": \"Nuevo Gerente\",\r\n  \"phone\": \"1234567890\",\r\n  \"notes\": \"Horario extendido por temporada\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/stores/0ozEM7Uk1iBMCJJDxDFG",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"stores",
+						"0ozEM7Uk1iBMCJJDxDFG"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Stores",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/stores/p1d7Pyelr91Ac2JBGyc7",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"stores",
+						"p1d7Pyelr91Ac2JBGyc7"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "http://localhost:3000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
