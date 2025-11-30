@@ -1,25 +1,26 @@
 import admin from 'firebase-admin';
+import dotenv from 'dotenv';
 
-const serviceAccountBase64 = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-if (!serviceAccountBase64) {
-  throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON no está definida en las variables de entorno.');
+// 1. Cargar las variables del archivo .env
+dotenv.config();
+
+// 2. Verificar que existan las credenciales
+if (!process.env.FIREBASE_PRIVATE_KEY || !process.env.FIREBASE_CLIENT_EMAIL) {
+  throw new Error('Faltan variables de conexión a Firebase en el archivo .env');
 }
 
-let serviceAccount;
-try {
-  const jsonStr = Buffer.from(serviceAccountBase64, 'base64').toString('utf8');
-  serviceAccount = JSON.parse(jsonStr);
-} catch (err) {
-  console.error('Error parseando FIREBASE_SERVICE_ACCOUNT_JSON:', err);
-  throw err;
-}
-
+// 3. Inicializar Firebase (Solo si no se ha iniciado ya)
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      // Esta línea es vital para que lea bien la clave privada desde el .env
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+    })
   });
 }
 
-const db = admin.firestore();
-
-export { admin, db };
+// 4. Exportar la base de datos
+export const db = admin.firestore();
+export { admin };

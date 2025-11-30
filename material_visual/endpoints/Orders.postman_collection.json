@@ -1,0 +1,136 @@
+{
+	"info": {
+		"_postman_id": "ca30205d-ab4c-495c-ad77-2e8ac724ee5a",
+		"name": "Orders",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34558101"
+	},
+	"item": [
+		{
+			"name": "Get All Orders",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/orders",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"orders"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Order",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"admin_name\": \"Kuko\",\r\n  \"order_date\": \"2025-11-30\",\r\n  \"delivery_date\": \"2025-12-05\",\r\n  \"status\": \"Pendiente\",\r\n  \"notes\": \"Entregar por la entrada de proveedores\",\r\n  \"product_name\": \"Coca Cola 600ml\",\r\n  \"quantity\": 50,\r\n  \"store_name\": \"Mercadito Central\",\r\n  \"supplier_name\": \"Coca Cola FEMSA\",\r\n  \"total_cost\": 850.50\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/orders",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"orders"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Order",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"status\": \"Entregado\",\r\n  \"notes\": \"Recibido por Kuko sin novedad\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/orders/lol4S5w8BVXiQ0P5IRdd",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"orders",
+						"lol4S5w8BVXiQ0P5IRdd"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Order",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/orders/C2YBEsRL7cOdkp1dUcIB",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"orders",
+						"C2YBEsRL7cOdkp1dUcIB"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Orders (Update)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/orders",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"orders"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "http://localhost:3000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
