@@ -75,6 +75,7 @@
 </template>
 
 <script setup>
+import { useAuthStore } from '../../store/auth.store';
 import { useRouter, useRoute } from 'vue-router';
 // 3. CAMBIO: Importamos ref y onMounted
 import { ref, onMounted } from 'vue';
@@ -91,6 +92,7 @@ const props = defineProps({
 
 const emit = defineEmits(['navigate', 'logout']);
 
+const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 

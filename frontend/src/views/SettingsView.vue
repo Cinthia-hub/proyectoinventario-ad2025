@@ -183,10 +183,8 @@ export default {
       this.isLoading = true;
       try {
         await api.saveSettings(this.store);
-        alert("Settings saved successfully!");
       } catch (error) {
         console.error("Error guardando settings:", error);
-        alert("Failed to save settings.");
       } finally {
         this.isLoading = false;
       }
