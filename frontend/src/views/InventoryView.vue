@@ -123,6 +123,7 @@ export default {
         filterFields: [
             { label: "Products", value: "nombre" },
             { label: "Buying Price", value: "price" },
+            { label: "Category", value: "category" },
             { label: "Quantity", value: "quantity" },
             { label: "Threshold Value", value: "threshold_value" },
             { label: "Expiry Date", value: "expiry_date" },
