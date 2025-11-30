@@ -4,7 +4,56 @@
 
 Aplicación Fullstack para la gestión de productos, proveedores y movimientos de inventario. Permite registrar entradas y salidas, generar reportes de stock, administrar categorías y controlar ventas en un entorno intuitivo. Incluye autenticación con JWT, API REST, base de datos estructurada y una interfaz moderna y responsiva.
 
-Requisitos
+---
+
+## Contenido
+
+- 🧾 Descripción
+- ⚙️ Tecnologías
+- 🔧 Requisitos
+- 🚀 Inicio rápido (local)
+  - Backend
+  - Frontend
+- 🔐 Variables de entorno importantes
+- 🗄️ Datos y export/import (Firestore)
+- 🧪 Tests y lint (si aplica)
+- 🐛 Solución de problemas comunes
+- 🤝 Cómo contribuir
+- 📄 Licencia
+
+---
+
+## Descripción
+
+Esta app está pensada para pequeños comercios que necesitan llevar control del inventario, órdenes y proveedores. Tiene:
+- Panel administrativo (Vue 3 + Vite)
+- API REST (Node.js)
+- Autenticación y permisos
+- Reportes y exportes (CSV / SQL de ejemplo)
+- Integraciones para usar Firestore como origen de datos
+
+---
+
+## Tecnologías
+
+- Frontend: Vue 3, Vite, vue-chartjs / Chart.js
+- Backend: Node.js (Express / Koa o similar) — carpeta `backend`
+- Base de datos: Firestore (Cloud Firestore) o la que esté configurada en `backend`
+- Utilidades: firebase-admin (para scripts), herramientas de build habituales (npm/yarn)
+
+---
+
+## Inicio rápido (local)
+
+Clonar repo:
+```bash
+git clone https://github.com/Cinthia-hub/proyectoinventario-ad2025.git
+cd proyectoinventario-ad2025
+```
+
+---
+
+## Requisitos
 - Node.js (>=16) y npm
 
 Backend (API)
